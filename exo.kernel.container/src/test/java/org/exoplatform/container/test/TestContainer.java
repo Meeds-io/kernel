@@ -20,6 +20,8 @@ package org.exoplatform.container.test;
 
 import junit.framework.TestCase;
 
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.RootContainer;
 import org.exoplatform.container.component.ComponentPlugin;
@@ -39,6 +41,12 @@ public class TestContainer extends TestCase
    public void setUp() throws Exception
    {
       System.setProperty("maven.exoplatform.dir", TestContainer.class.getResource("/").getFile());
+      ExoContainer topContainer = ExoContainerContext.getTopContainer();
+      if(topContainer != null) {
+         topContainer.stop();
+      }
+      PortalContainer.setInstance(null);
+      RootContainer.setInstance(null);
    }
 
    public void testComponent() throws Exception
