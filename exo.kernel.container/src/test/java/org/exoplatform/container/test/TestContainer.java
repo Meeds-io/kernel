@@ -40,10 +40,8 @@ public class TestContainer extends TestCase
 {
    private static final org.exoplatform.services.log.Log LOG = ExoLogger.getLogger("exo.kernel.container.TestContainer");
    
-   
-   public void setUp() throws Exception
-   {
-      LOG.info("Start SetUp");
+   public TestContainer() {
+      LOG.info("Start constructor");
    
       System.setProperty("maven.exoplatform.dir", TestContainer.class.getResource("/").getFile());
       ExoContainer topContainer = ExoContainerContext.getTopContainer();
@@ -53,7 +51,7 @@ public class TestContainer extends TestCase
       ExoContainerContext.setCurrentContainer(null);
       PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
-      LOG.info("End SetUp");
+      LOG.info("End constructor");
    
    }
 
