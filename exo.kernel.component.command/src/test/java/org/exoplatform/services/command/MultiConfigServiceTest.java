@@ -20,6 +20,7 @@ package org.exoplatform.services.command;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.chain.impl.CatalogFactoryBase;
 import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.command.impl.CommandService;
 
@@ -126,6 +127,10 @@ public class MultiConfigServiceTest extends TestCase
          cnt++;
       }
 
+   }
+   public void tearDown() {
+      CatalogFactoryBase.clear();
+      container.stop();
    }
 
 }
