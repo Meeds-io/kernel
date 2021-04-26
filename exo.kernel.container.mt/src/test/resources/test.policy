@@ -14,6 +14,8 @@ grant codeBase "@TEST_CLASSES@-"{
    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
    permission java.lang.RuntimePermission "createClassLoader";
    permission java.lang.RuntimePermission "setContextClassLoader";
+   //Permissions needed for TestStandaloneContainer
+   permission java.lang.RuntimePermission "modifyThread";
 };
 
 grant codeBase "@MAIN_CLASSES@../../../exo.kernel.commons.test/-"{
