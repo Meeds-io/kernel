@@ -45,6 +45,7 @@ public class TestContainer extends TestCase
       if(topContainer != null) {
          topContainer.stop();
       }
+      ExoContainerContext.setCurrentContainer(null);
       PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
    }
