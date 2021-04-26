@@ -119,5 +119,9 @@ public class TestContainer extends TestCase
          pcontainer = (PortalContainer)rootContainer.getComponentInstance("portal");
          assertTrue("not null", pcontainer != null);
       }
-   }   
+   }
+   
+   public void tearDown() {
+      RootContainer.getInstance().stop();
+   }
 }
