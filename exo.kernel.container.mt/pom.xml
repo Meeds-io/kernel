@@ -97,6 +97,7 @@
                            <overWrite>false</overWrite>
                         </artifactItem>
                      </artifactItems>
+                     <excludes>**/TestContainer.java</excludes>
                      <outputDirectory>${project.build.directory}/kernel-container-tests</outputDirectory>
                   </configuration>
                </execution>
@@ -118,6 +119,7 @@
                         <resource>
                            <directory>${project.build.directory}/kernel-container-tests</directory>
                            <excludes>
+                              <exclude>**/TestContainer.java</exclude>
                            </excludes>
                         </resource>
                      </resources>
