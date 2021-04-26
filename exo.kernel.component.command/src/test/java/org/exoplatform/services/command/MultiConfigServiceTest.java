@@ -21,6 +21,10 @@ package org.exoplatform.services.command;
 import junit.framework.TestCase;
 
 import org.apache.commons.chain.impl.CatalogFactoryBase;
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.RootContainer;
 import org.exoplatform.container.StandaloneContainer;
 import org.exoplatform.services.command.impl.CommandService;
 
@@ -50,6 +54,15 @@ public class MultiConfigServiceTest extends TestCase
 
    public void setUp() throws Exception
    {
+   
+      ExoContainer topContainer = ExoContainerContext.getTopContainer();
+      if(topContainer != null) {
+         topContainer.stop();
+      }
+      PortalContainer.setInstance(null);
+      RootContainer.setInstance(null);
+      ExoContainerContext.setCurrentContainer(null);
+      StandaloneContainer.getInstance().stop();
 
       StandaloneContainer.setConfigurationPath("src/test/resources/conf/standalone/test-multi-configuration.xml");
 
