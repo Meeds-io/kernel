@@ -54,16 +54,6 @@ public class MultiConfigServiceTest extends TestCase
 
    public void setUp() throws Exception
    {
-   
-      ExoContainer topContainer = ExoContainerContext.getTopContainer();
-      if(topContainer != null) {
-         topContainer.stop();
-      }
-      PortalContainer.setInstance(null);
-      RootContainer.setInstance(null);
-      ExoContainerContext.setCurrentContainer(null);
-      StandaloneContainer.getInstance().stop();
-
       StandaloneContainer.setConfigurationPath("src/test/resources/conf/standalone/test-multi-configuration.xml");
 
       container = StandaloneContainer.getInstance();
@@ -141,9 +131,9 @@ public class MultiConfigServiceTest extends TestCase
       }
 
    }
-   public void tearDown() {
-      CatalogFactoryBase.clear();
-      container.stop();
-   }
+//   public void tearDown() {
+//      CatalogFactoryBase.clear();
+//      container.stop();
+//   }
 
 }
