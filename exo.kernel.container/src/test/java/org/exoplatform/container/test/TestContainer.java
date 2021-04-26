@@ -28,6 +28,7 @@ import org.exoplatform.container.RootContainer;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.mocks.MockService;
 import org.exoplatform.mocks.PriorityService;
+import org.exoplatform.services.log.ExoLogger;
 
 import java.util.List;
 
@@ -38,9 +39,13 @@ import java.util.List;
  */
 public class TestContainer extends TestCase
 {
-
+   private static final org.exoplatform.services.log.Log LOG = ExoLogger.getLogger("exo.kernel.container.TestContainer");
+   
+   
    public void setUp() throws Exception
    {
+      LOG.info("Start SetUp");
+   
       System.setProperty("maven.exoplatform.dir", TestContainer.class.getResource("/").getFile());
       ExoContainer topContainer = ExoContainerContext.getTopContainer();
       if(topContainer != null) {
@@ -49,21 +54,23 @@ public class TestContainer extends TestCase
       ExoContainerContext.setCurrentContainer(null);
       PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
+      LOG.info("End SetUp");
+   
    }
 
    public void testComponent() throws Exception
    {
-      Log.info("Start testComponent");
+      LOG.info("Start testComponent");
       RootContainer rootContainer = RootContainer.getInstance();
       MockService mservice = (MockService)rootContainer.getComponentInstance("MockService");
       assertTrue(mservice != null);
       assertTrue(mservice.getPlugins().size() == 2);
-      Log.info("End testComponent");
+      LOG.info("End testComponent");
    }
 
    public void testComponent2() throws Exception
    {
-      Log.info("Start testComponent2");
+      LOG.info("Start testComponent2");
       RootContainer rootContainer = RootContainer.getInstance();
       PortalContainer pcontainer = rootContainer.getPortalContainer("portal");
       assertNotNull(pcontainer);
@@ -73,12 +80,12 @@ public class TestContainer extends TestCase
       assertNotNull(c);
       c = (MultibleComponent)pcontainer.getComponentInstanceOfType(MultibleComponent.class);
       assertNotNull(c);
-      Log.info("End testComponent2");
+      LOG.info("End testComponent2");
    }
 
    public void testComponent3() throws Exception
    {
-      Log.info("Start testComponent3");
+      LOG.info("Start testComponent3");
       RootContainer rootContainer = RootContainer.getInstance();
       PortalContainer pcontainer = rootContainer.getPortalContainer("portal");
       assertNotNull(pcontainer);
@@ -88,11 +95,13 @@ public class TestContainer extends TestCase
       assertNotNull(c);
       c = (DefaultComponent)pcontainer.getComponentInstanceOfType(DefaultComponent.class);
       assertNotNull(c);
-      Log.info("End testComponent3");
+      LOG.info("End testComponent3");
    }
 
    public void testPriorityPlugins()
    {
+      LOG.info("Start testPriorityPlugins");
+   
       RootContainer rootContainer = RootContainer.getInstance();
       PortalContainer pcontainer = rootContainer.getPortalContainer("portal");
       assertNotNull(pcontainer);
@@ -104,10 +113,14 @@ public class TestContainer extends TestCase
       assertEquals("PluginPriority3", l.get(0).getName());
       assertEquals("PluginPriority1", l.get(1).getName());
       assertEquals("PluginPriority2", l.get(2).getName());
+      LOG.info("End testPriorityPlugins");
+   
    }
    
    public void testPortalContainer() throws Exception
    {
+      LOG.info("Start testPortalContainer");
+   
       RootContainer rootContainer = RootContainer.getInstance();
       PortalContainer pcontainer = rootContainer.getPortalContainer("portal");
       Object parent = pcontainer.getParent();
@@ -126,9 +139,7 @@ public class TestContainer extends TestCase
          pcontainer = (PortalContainer)rootContainer.getComponentInstance("portal");
          assertTrue("not null", pcontainer != null);
       }
-   }
+      LOG.info("End testPortalContainer");
    
-   public void tearDown() {
-      RootContainer.getInstance().stop();
    }
 }
