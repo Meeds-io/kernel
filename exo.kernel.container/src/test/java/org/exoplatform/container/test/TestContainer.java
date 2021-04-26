@@ -18,7 +18,6 @@
  */
 package org.exoplatform.container.test;
 
-import jdk.internal.org.jline.utils.Log;
 import junit.framework.TestCase;
 
 import org.exoplatform.container.ExoContainer;
