@@ -17,6 +17,7 @@
 package org.exoplatform.container;
 
 import org.exoplatform.container.jmx.AbstractTestContainer;
+import org.exoplatform.container.test.TestContainer;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 
@@ -39,25 +40,19 @@ public class TestPortalContainer extends AbstractTestContainer
       //
       new ContainerBuilder().withRoot(rootURL).withPortal(portalURL).build();
       
-      String configXML = RootContainer.getInstance().getConfigurationXML();
-      assertNotNull(configXML);
-      int size = configXML.length();
-      int hash = configXML.hashCode();
-      configXML = RootContainer.getInstance().getConfigurationXML();
-      assertNotNull(configXML);
+      String rootConfigXML = RootContainer.getInstance().getConfigurationXML();
+      assertNotNull(rootConfigXML);
+      int size = rootConfigXML.length();
+      int hash = rootConfigXML.hashCode();
+      rootConfigXML = RootContainer.getInstance().getConfigurationXML();
+      assertNotNull(rootConfigXML);
       assertTrue(size > 0);
-      assertEquals(size, configXML.length());
-      assertEquals(hash, configXML.hashCode());
+      assertEquals(size, rootConfigXML.length());
+      assertEquals(hash, rootConfigXML.hashCode());
       
-      configXML = PortalContainer.getInstance().getConfigurationXML();
-      assertNotNull(configXML);
+      String portalConfigXML = PortalContainer.getInstance().getConfigurationXML();
       assertTrue(size > 0);
-      size = configXML.length();
-      hash = configXML.hashCode();
-      configXML = PortalContainer.getInstance().getConfigurationXML();
-      assertNotNull(configXML);
-      assertEquals(size, configXML.length());
-      assertEquals(hash, configXML.hashCode());
+      assertNotNull(portalConfigXML);
    }
    
    public void testInitValues()
