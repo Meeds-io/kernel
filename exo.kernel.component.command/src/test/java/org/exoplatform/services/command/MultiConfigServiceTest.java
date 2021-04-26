@@ -131,9 +131,10 @@ public class MultiConfigServiceTest extends TestCase
       }
 
    }
-//   public void tearDown() {
-//      CatalogFactoryBase.clear();
-//      container.stop();
-//   }
-
+   
+   public void tearDown() {
+      CatalogFactoryBase.clear();
+      container.stop();
+   
+   }
 }
