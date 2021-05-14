@@ -65,17 +65,17 @@ public class TestAbstractExoCache extends TestCase
    {
       super(name);
    }
-
+   
    public void setUp() throws Exception
    {
+   
       ExoContainer topContainer = ExoContainerContext.getTopContainer();
       if(topContainer != null) {
          topContainer.stop();
       }
-      PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
       ExoContainerContext.setCurrentContainer(null);
-   
+      
       this.container = PortalContainer.getInstance();
       this.service = container.getComponentInstanceOfType(CacheService.class);
       this.cache = (AbstractExoCache<Serializable, Object>)service.getCacheInstance("myCache");
@@ -687,5 +687,6 @@ public class TestAbstractExoCache extends TestCase
       assertTrue(cache.getCacheSize() == 0);
 
       cache.clearCache();
-   }   
+   }
+   
 }
