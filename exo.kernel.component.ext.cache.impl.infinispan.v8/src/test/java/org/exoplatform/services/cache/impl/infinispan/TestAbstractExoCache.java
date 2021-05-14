@@ -68,19 +68,16 @@ public class TestAbstractExoCache extends TestCase
       super(name);
    }
    
-   @BeforeClass
-   public static void init() {
+   public void setUp() throws Exception
+   {
+   
       ExoContainer topContainer = ExoContainerContext.getTopContainer();
       if(topContainer != null) {
          topContainer.stop();
       }
-      PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
       ExoContainerContext.setCurrentContainer(null);
-   }
-   
-   public void setUp() throws Exception
-   {
+      
       this.container = PortalContainer.getInstance();
       this.service = container.getComponentInstanceOfType(CacheService.class);
       this.cache = (AbstractExoCache<Serializable, Object>)service.getCacheInstance("myCache");
