@@ -34,7 +34,9 @@ import org.exoplatform.services.cache.ExoCacheConfig;
 import org.exoplatform.services.cache.ExoCacheFactory;
 import org.exoplatform.services.cache.ExoCacheInitException;
 import org.exoplatform.services.cache.ObjectCacheInfo;
+import org.junit.BeforeClass;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,9 +67,9 @@ public class TestAbstractExoCache extends TestCase
    {
       super(name);
    }
-
-   public void setUp() throws Exception
-   {
+   
+   @BeforeClass
+   public static void init() {
       ExoContainer topContainer = ExoContainerContext.getTopContainer();
       if(topContainer != null) {
          topContainer.stop();
@@ -75,7 +77,10 @@ public class TestAbstractExoCache extends TestCase
       PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
       ExoContainerContext.setCurrentContainer(null);
+   }
    
+   public void setUp() throws Exception
+   {
       this.container = PortalContainer.getInstance();
       this.service = container.getComponentInstanceOfType(CacheService.class);
       this.cache = (AbstractExoCache<Serializable, Object>)service.getCacheInstance("myCache");
@@ -687,5 +692,6 @@ public class TestAbstractExoCache extends TestCase
       assertTrue(cache.getCacheSize() == 0);
 
       cache.clearCache();
-   }   
+   }
+   
 }
