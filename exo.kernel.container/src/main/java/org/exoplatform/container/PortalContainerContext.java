@@ -612,4 +612,11 @@ class PortalContainerContext implements ServletContext
    {
       getPortalContext().declareRoles(roleNames);
    }
+
+   /**
+    * {@inheritDoc}
+    */
+   public String getVirtualServerName() {
+     return getPortalContext().getVirtualServerName();
+   }
 }

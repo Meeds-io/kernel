@@ -63,11 +63,6 @@
          <artifactId>slf4j-log4j12</artifactId>
          <scope>test</scope>
       </dependency>
-      <dependency>
-         <groupId>org.databene</groupId>
-         <artifactId>contiperf</artifactId>
-         <scope>test</scope>
-      </dependency>
    </dependencies>
    <build>
       <plugins>

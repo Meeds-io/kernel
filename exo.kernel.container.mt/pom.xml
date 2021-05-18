@@ -46,7 +46,6 @@
          <artifactId>exo.kernel.container</artifactId>
          <classifier>tests</classifier>
          <scope>test</scope>
-         <version>${project.version}</version>
       </dependency>
       <dependency>
          <groupId>javax.inject</groupId>
@@ -68,11 +67,6 @@
          <groupId>org.javassist</groupId>
          <artifactId>javassist</artifactId>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.databene</groupId>
-         <artifactId>contiperf</artifactId>
-         <scope>test</scope>
       </dependency>
    </dependencies>
    <build>

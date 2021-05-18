@@ -155,30 +155,6 @@
          </exclusions>
       </dependency>
       <dependency>
-         <groupId>com.zaxxer</groupId>
-         <artifactId>HikariCP</artifactId>
-         <optional>true</optional>
-         <exclusions>
-            <exclusion>
-               <groupId>org.slf4j</groupId>
-               <artifactId>slf4j-api</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>org.hibernate</groupId>
-               <artifactId>hibernate-core</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>commons-logging</groupId>
-               <artifactId>commons-logging</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>org.databene</groupId>
-         <artifactId>contiperf</artifactId>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
          <artifactId>hsqldb</artifactId>
          <groupId>org.hsqldb</groupId>
          <scope>test</scope>
@@ -186,7 +162,7 @@
       <dependency>
          <groupId>commons-dbcp</groupId>
          <artifactId>commons-dbcp</artifactId>
-         <scope>runtime</scope>
+         <scope>test</scope>
          <exclusions>
             <exclusion>
                <groupId>xerces</groupId>
@@ -202,6 +178,14 @@
          <groupId>commons-pool</groupId>
          <artifactId>commons-pool</artifactId>
          <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>javax.transaction</groupId>
+        <artifactId>jta</artifactId>
       </dependency>
    </dependencies>
    <build>

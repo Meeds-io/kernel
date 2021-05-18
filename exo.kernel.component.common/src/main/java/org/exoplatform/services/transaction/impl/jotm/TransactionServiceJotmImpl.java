@@ -24,6 +24,8 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.naming.InitialContextInitializer;
 import org.exoplatform.services.transaction.impl.AbstractTransactionService;
+import org.exoplatform.services.transaction.impl.jboss.JBossTransactionService;
+
 import org.objectweb.jotm.Current;
 import org.objectweb.jotm.TransactionFactory;
 import org.objectweb.jotm.TransactionFactoryImpl;
@@ -39,10 +41,12 @@ import javax.transaction.UserTransaction;
  * Created by The eXo Platform SAS.<br> JOTM based implementation of
  * TransactionService
  * 
+ * @deprecated {@link JBossTransactionService} used in all cases instead
  * @author <a href="mailto:gennady.azarenkov@exoplatform.com">Gennady
  *         Azarenkov</a>
  * @version $Id: $
  */
+@Deprecated
 public class TransactionServiceJotmImpl extends AbstractTransactionService
 {
 
