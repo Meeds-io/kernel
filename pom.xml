@@ -25,10 +25,10 @@
    <modelVersion>4.0.0</modelVersion>
 
    <parent>
-      <groupId>org.exoplatform</groupId>
-      <artifactId>foundation-parent</artifactId>
-      <version>22-M02</version>
-      <relativePath />
+    <artifactId>maven-parent-pom</artifactId>
+    <groupId>org.exoplatform</groupId>
+    <version>23-M08</version>
+    <relativePath />
    </parent>
 
    <groupId>org.exoplatform.kernel</groupId>
@@ -40,43 +40,12 @@
    <description>Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
-      <exo.product.name>exo-kernel</exo.product.name>
-      <exo.product.specification>2.5</exo.product.specification>
-      <forkMode>once</forkMode>
       <!-- PLF project dependencies -->
       <org.exoplatform.gatein.wci.version>6.2.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
       <!-- 3rd party libraries versions -->
-      <org.ogce.xpp3.version>1.1.6</org.ogce.xpp3.version>
-      <commons-beanutils.version>1.8.3</commons-beanutils.version>
-      <commons-long.version>2.6</commons-long.version>
-      <commons-chain.version>1.2</commons-chain.version>
-      <commons-digester.version>2.1</commons-digester.version>
-      <org.slf4j.version>1.7.5</org.slf4j.version>
-      <mime-util.version>2.1.3</mime-util.version>
-      <quartz.version>2.2.2</quartz.version>
-      <contiperf.version>2.2.0</contiperf.version>
-      <javax.mail.version>1.4.7</javax.mail.version>
-      <javax.transaction.version>1.1</javax.transaction.version>
-      <connector-api.version>1.5</connector-api.version>
-      <javax.servlet.version>3.0.1</javax.servlet.version>
-      <jgroups.version>3.6.13.Final</jgroups.version>
-      <jboss-logging.version>3.3.0.Final</jboss-logging.version>
-      <jbossts.version>4.16.6.Final</jbossts.version>
-      <infinispan.version>8.2.6.Final</infinispan.version>
-      <org.ow2.jotm.version>2.1.9</org.ow2.jotm.version>
-      <ow2-jta-1.1-spec.version>1.0.13</ow2-jta-1.1-spec.version>
-      <transactions-jta.version>3.8.0</transactions-jta.version>
       <subethasmtp.version>3.1.7</subethasmtp.version>
-      <guice.version>3.0</guice.version>
-      <cdi-api.version>1.0-SP4</cdi-api.version>
-      <javassist.version>3.18.0-GA</javassist.version>
       <spymemcached.version>2.10.0</spymemcached.version>
-      <ws-commons-util.version>1.0.1</ws-commons-util.version>
       <spring-context.version>3.2.4.RELEASE</spring-context.version>
-      <HikariCP.version>1.3.0</HikariCP.version>
-      <Hsql.version>2.4.0</Hsql.version>
-      <common.dbcp.version>1.4</common.dbcp.version>
-      <common.pool.version>1.6</common.pool.version>
    </properties>
 
    <scm>
@@ -84,7 +53,7 @@
       <developerConnection>scm:git:git@github.com:exoplatform/kernel.git</developerConnection>
       <url>https://fisheye.exoplatform.org/browse/kernel-dev</url>
      <tag>HEAD</tag>
-  </scm>
+   </scm>
 
    <modules>
       <module>exo.kernel.container</module>
@@ -104,6 +73,16 @@
 
    <dependencyManagement>
       <dependencies>
+         <!-- Import gatein-wci dependencies -->
+         <dependency>
+           <groupId>org.exoplatform.gatein.wci</groupId>
+           <artifactId>wci-parent</artifactId>
+           <version>${org.exoplatform.gatein.wci.version}</version>
+           <type>pom</type>
+           <scope>import</scope>
+         </dependency>
+
+         <!-- Declare our own artifacts -->
          <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>kernel-parent</artifactId>
@@ -153,200 +132,31 @@
             <version>${project.version}</version>
          </dependency>
          <dependency>
-            <groupId>org.ogce</groupId>
-            <artifactId>xpp3</artifactId>
-            <version>${org.ogce.xpp3.version}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>exo.kernel.container</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+            <version>${project.version}</version>
          </dependency>
-         <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>${commons-beanutils.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>commons-chain</groupId>
-            <artifactId>commons-chain</artifactId>
-            <version>${commons-chain.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>commons-digester</groupId>
-            <artifactId>commons-digester</artifactId>
-            <version>${commons-digester.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${org.slf4j.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${org.slf4j.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>eu.medsea.mimeutil</groupId>
-            <artifactId>mime-util</artifactId>
-            <version>${mime-util.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <version>${quartz.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>${javax.mail.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>${javax.transaction.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.resource</groupId>
-            <artifactId>connector-api</artifactId>
-            <version>${connector-api.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.jgroups</groupId>
-            <artifactId>jgroups</artifactId>
-            <version>${jgroups.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
-            <version>${jboss-logging.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-            <version>${infinispan.version}</version>
-         </dependency>
-         <dependency>
-           <groupId>org.jboss.jbossts</groupId>
-           <artifactId>jbossjta</artifactId>
-           <version>${jbossts.version}</version>
-         </dependency>
-         <dependency>
-              <groupId>org.infinispan</groupId>
-              <artifactId>infinispan-commons</artifactId>
-              <version>${infinispan.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${commons-long.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.jibx</groupId>
-            <artifactId>jibx-bind</artifactId>
-            <version>${version.jibx.plugin}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.jibx</groupId>
-            <artifactId>jibx-extras</artifactId>
-            <version>${version.jibx.plugin}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.jibx</groupId>
-            <artifactId>jibx-run</artifactId>
-            <version>${version.jibx.plugin}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.ow2.jotm</groupId>
-            <artifactId>jotm-core</artifactId>
-            <version>${org.ow2.jotm.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.ow2.spec.ee</groupId>
-            <artifactId>ow2-jta-1.1-spec</artifactId>
-            <version>${ow2-jta-1.1-spec.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>com.atomikos</groupId>
-            <artifactId>transactions-jta</artifactId>
-            <version>${transactions-jta.version}</version>
-         </dependency>
+
+         <!-- Other third party dependencies used in kernel only -->
          <dependency>
             <groupId>org.subethamail</groupId>
             <artifactId>subethasmtp</artifactId>
             <version>${subethasmtp.version}</version>
+            <scope>test</scope>
          </dependency>
-         <dependency>
-            <groupId>org.exoplatform.gatein.wci</groupId>
-            <artifactId>wci-wci</artifactId>
-            <version>${org.exoplatform.gatein.wci.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>${guice.version}</version>
-         </dependency>
+
+         <!-- Third party dependencies used by deprecated services  -->
          <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring-context.version}</version>
          </dependency>
          <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>1</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <version>${cdi-api.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>${javassist.version}</version>
-         </dependency>
-         <dependency>
             <groupId>net.spy</groupId>
             <artifactId>spymemcached</artifactId>
             <version>${spymemcached.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.apache.ws.commons</groupId>
-            <artifactId>ws-commons-util</artifactId>
-            <version>${ws-commons-util.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.databene</groupId>
-            <artifactId>contiperf</artifactId>
-            <version>${contiperf.version}</version>
-            <scope>test</scope>
-         </dependency>
-         <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>${HikariCP.version}</version>
-         </dependency>
-         <dependency>
-            <artifactId>hsqldb</artifactId>
-            <groupId>org.hsqldb</groupId>
-            <version>${Hsql.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>commons-dbcp</groupId>
-            <artifactId>commons-dbcp</artifactId>
-            <version>${common.dbcp.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>commons-pool</groupId>
-            <artifactId>commons-pool</artifactId>
-            <version>${common.pool.version}</version>
          </dependency>
       </dependencies>
    </dependencyManagement>

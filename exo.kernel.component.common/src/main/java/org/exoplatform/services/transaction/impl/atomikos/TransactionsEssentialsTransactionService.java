@@ -22,6 +22,8 @@ import com.atomikos.icatch.jta.UserTransactionManager;
 
 import org.exoplatform.services.transaction.TransactionService;
 import org.exoplatform.services.transaction.impl.AbstractTransactionService;
+import org.exoplatform.services.transaction.impl.jboss.JBossTransactionService;
+
 import org.picocontainer.Startable;
 
 import javax.transaction.TransactionManager;
@@ -31,10 +33,12 @@ import javax.transaction.UserTransaction;
  * An implementation of a {@link TransactionService} for TransactionsEssentials from Atomikos
  * to be used in standalone mode
  * 
+ * @deprecated {@link JBossTransactionService} used in all cases instead
  * @author <a href="mailto:nfilotto@exoplatform.com">Nicolas Filotto</a>
  * @version $Id$
  *
  */
+@Deprecated
 public class TransactionsEssentialsTransactionService extends AbstractTransactionService implements Startable
 {
 

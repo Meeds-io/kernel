@@ -347,5 +347,9 @@ public class TestWebAppInitContextComparator extends TestCase
       public void declareRoles(String... roleNames)
       {
       }
+
+      public String getVirtualServerName() {
+        return null;
+      }
    }
 }

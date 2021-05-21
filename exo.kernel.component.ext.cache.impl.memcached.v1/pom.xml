@@ -92,17 +92,14 @@
                   <configuration>
                      <target>
                         <echo>Creating Access Policy for tests</echo>
-                        <makeurl file="${settings.localRepository}" property="localRepositoryURL" />
-                        <makeurl file="${project.build.outputDirectory}" property="outputDirectoryURL" />
-                        <makeurl file="${project.build.testOutputDirectory}" property="testOutputDirectoryURL" />
                         <copy todir="${project.build.testOutputDirectory}" overwrite="true">
                            <fileset dir="${project.basedir}/src/test/resources/">
                               <include name="test.policy" />
                            </fileset>
                            <filterset>
-                              <filter token="MAVEN_REPO" value="${localRepositoryURL}" />
-                              <filter token="MAIN_CLASSES" value="${outputDirectoryURL}" />
-                              <filter token="TEST_CLASSES" value="${testOutputDirectoryURL}" />
+                              <filter token="MAVEN_REPO" value="${settings.localRepository}" />
+                              <filter token="MAIN_CLASSES" value="${project.build.outputDirectory}" />
+                              <filter token="TEST_CLASSES" value="${project.build.testOutputDirectory}" />
                            </filterset>
                         </copy>
                      </target>

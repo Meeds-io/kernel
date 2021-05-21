@@ -349,5 +349,9 @@ public class TestPortalContainerInitTaskContextComparator extends TestCase
       public void declareRoles(String... roleNames)
       {
       }
+
+      public String getVirtualServerName() {
+        return null;
+      }
    }
 }
