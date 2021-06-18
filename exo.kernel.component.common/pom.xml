@@ -36,7 +36,6 @@
    <description>Implementation of Common Service of Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
-      <argLine>${env.MAVEN_OPTS} -Djava.net.preferIPv4Stack=true -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
       <exo.test.coverage.ratio>0.5</exo.test.coverage.ratio>
    </properties>
 
@@ -55,42 +54,6 @@
          <artifactId>slf4j-log4j12</artifactId>
          <scope>test</scope>
       </dependency>      
-      <dependency>
-         <groupId>org.ow2.jotm</groupId>
-         <artifactId>jotm-core</artifactId>
-         <scope>provided</scope>
-         <exclusions>
-            <exclusion>
-               <groupId>org.ow2.spec.ee</groupId>
-               <artifactId>ow2-jta-1.1-spec</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>javax.resource</groupId>
-               <artifactId>connector</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>log4j</groupId>
-               <artifactId>log4j</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>javax.servlet</groupId>
-               <artifactId>servlet-api</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>commons-logging</groupId>
-               <artifactId>commons-logging-api</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>org.ow2.spec.ee</groupId>
-         <artifactId>ow2-jta-1.1-spec</artifactId>
-         <scope>provided</scope>
-      </dependency>
       <dependency>
          <groupId>javax.resource</groupId>
          <artifactId>connector-api</artifactId>
@@ -194,6 +157,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+                <argLine>${env.MAVEN_OPTS} -Djava.net.preferIPv4Stack=true -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
                 <systemProperties>
                   <!-- Avoid the firewall -->
                   <property>

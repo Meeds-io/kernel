@@ -31,7 +31,6 @@
    <name>eXo PLF:: Kernel :: Container</name>
    <description>Implementation of Container for Exoplatform SAS 'eXo Kernel' project.</description>
    <properties>
-      <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
       <exo.test.coverage.ratio>0.6</exo.test.coverage.ratio>
    </properties>
    <dependencies>
@@ -114,10 +113,14 @@
    <build>
       <plugins>
          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+            </configuration>
+         </plugin>
+         <plugin>
             <groupId>org.jibx</groupId>
             <artifactId>maven-jibx-plugin</artifactId>
-            <!-- To delete once org.exoplatform:maven-parent-pom:23-M10 is released -->
-            <version>1.3.1</version>
             <configuration>
                <directory>src/main/resources</directory>
                <includes>
@@ -161,13 +164,6 @@
                   </goals>
                </execution>
             </executions>
-            <dependencies>
-               <dependency>
-                  <groupId>ant</groupId>
-                  <artifactId>ant-optional</artifactId>
-                  <version>1.5.3-1</version>
-               </dependency>
-            </dependencies>
          </plugin>
          <!-- Configure maven-source-plugin to publish the sources of the unit tests -->
          <plugin>

@@ -36,7 +36,6 @@
    <description>Implementation of Cache Service of Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
-      <argLine>${env.MAVEN_OPTS} -Djava.net.preferIPv4Stack=true -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
       <exo.test.coverage.ratio>0.4</exo.test.coverage.ratio>
    </properties>
 
@@ -70,6 +69,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+                <argLine>${env.MAVEN_OPTS} -Djava.net.preferIPv4Stack=true -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
                 <systemProperties>
                   <!-- Avoid the firewall -->
                   <property>

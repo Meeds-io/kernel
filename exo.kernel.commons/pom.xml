@@ -36,9 +36,7 @@
    <description>Implementation of Commons Utils of Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
-      <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
       <exo.test.coverage.ratio>0.2</exo.test.coverage.ratio>
-
    </properties>
 
    <dependencies>
@@ -102,6 +100,12 @@
       </testResources>
       <plugins>
          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+            </configuration>
+         </plugin>
+         <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
                <execution>
@@ -130,13 +134,6 @@
                   </goals>
                </execution>
             </executions>
-            <dependencies>
-               <dependency>
-                  <groupId>ant</groupId>
-                  <artifactId>ant-optional</artifactId>
-                  <version>1.5.3-1</version>
-               </dependency>
-            </dependencies>
          </plugin>
       </plugins>
    </build>
