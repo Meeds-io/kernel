@@ -59,26 +59,6 @@ public class TransactionTest extends TestCase
       ts.getUserTransaction();
    }
 
-   public void testUserTransactionFromJndi() throws Exception
-   {
-
-      InitialContext ctx = new InitialContext();
-      Object obj = ctx.lookup("UserTransaction");
-      UserTransaction ut = (UserTransaction)obj;
-
-      ut.begin();
-      XAResourceTestImpl xares = new XAResourceTestImpl(ts);
-      ts.enlistResource(xares);
-
-      assertEquals(0, xares.getFlag());
-
-      xares.setFlag(5);
-      ts.delistResource(xares);
-      ut.commit();
-      assertEquals(5, xares.getFlag());
-      assertEquals(5, xares.getOldFlag());
-   }
-
    public void testUserTransactionBeforeResource() throws Exception
    {
 
@@ -146,32 +126,6 @@ public class TransactionTest extends TestCase
       assertEquals(0, xares.getFlag());
       assertEquals(0, xares.getOldFlag());
 
-   }
-
-   public void testReuseUT() throws Exception
-   {
-
-      InitialContext ctx = new InitialContext();
-      Object obj = ctx.lookup("UserTransaction");
-      UserTransaction ut = (UserTransaction)obj;
-
-      ut.begin();
-      XAResourceTestImpl xares = new XAResourceTestImpl(ts); 
-      ts.enlistResource(xares);
-
-      xares.setFlag(5);
-      ut.commit();
-      assertEquals(5, xares.getFlag());
-      assertEquals(5, xares.getOldFlag());
-
-      ut.begin();
-      // In a case of reusing Have to enlist the resource once again!
-      ts.enlistResource(xares);
-      xares.setFlag(2);
-      ts.delistResource(xares);
-      ut.commit();
-      assertEquals(2, xares.getFlag());
-      assertEquals(2, xares.getOldFlag());
    }
 
    public void testSimpleGlobalTransaction() throws Exception

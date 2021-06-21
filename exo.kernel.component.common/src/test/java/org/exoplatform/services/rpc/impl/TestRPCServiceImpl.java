@@ -767,12 +767,12 @@ public class TestRPCServiceImpl extends TestCase
          assertFalse(listener2.isCoordinator);
          assertEquals(0, listener2.count);
          service2.start();
-         assertFalse(listener1.coordinatorHasChanged);
-         assertTrue(listener1.isCoordinator);
-         assertEquals(2, listener1.count);
          assertFalse(listener2.coordinatorHasChanged);
          assertFalse(listener2.isCoordinator);
          assertEquals(1, listener2.count);
+         assertFalse(listener1.coordinatorHasChanged);
+         assertTrue(listener1.isCoordinator);
+         assertEquals(2, listener1.count);
          assertEquals(true, service1.isCoordinator());
          assertEquals(false, service2.isCoordinator());
          List<Object> result;
