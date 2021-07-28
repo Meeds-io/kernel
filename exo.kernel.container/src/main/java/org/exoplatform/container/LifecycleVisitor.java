@@ -18,6 +18,7 @@
  */
 package org.exoplatform.container;
 
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.spi.Container;
 import org.exoplatform.container.spi.ContainerException;
 import org.exoplatform.container.spi.ContainerVisitor;
@@ -92,7 +93,11 @@ public class LifecycleVisitor implements ContainerVisitor
          }
          for (Iterator<?> iterator = componentInstances.iterator(); iterator.hasNext();)
          {
+            long startTime = System.currentTimeMillis();
             Object o = iterator.next();
+            if (PropertyManager.isDevelopping()) {
+              LOG.info("{} Service {} ", method.getName().toUpperCase(), o.getClass().getName());
+            }
             try
             {
                method.invoke(o, (Object[])null);
@@ -133,6 +138,10 @@ public class LifecycleVisitor implements ContainerVisitor
                }
                throw new ContainerException("Failed when calling " + method.getName() + " on " + o,
                   e.getTargetException());
+            } finally {
+              if (PropertyManager.isDevelopping()) {
+                LOG.info("Service {} took {}ms to {}", o.getClass().getName(), (System.currentTimeMillis() - startTime), method.getName().toUpperCase());
+              }
             }
          }
       }
