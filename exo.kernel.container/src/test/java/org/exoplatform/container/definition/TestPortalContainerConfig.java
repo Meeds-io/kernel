@@ -1365,18 +1365,6 @@ public class TestPortalContainerConfig extends AbstractTestContainer
       }
 
       try {
-      // Simple usecase from gatein
-      rootContainer = createRootContainer("sample-gtn-configuration.xml");
-      config = (PortalContainerConfig)rootContainer.getComponentInstanceOfType(PortalContainerConfig.class);
-      assertEquals("../gatein/data", config.getSetting("portal", "gatein.data.dir"));
-      assertEquals("../gatein/data/db", config.getSetting("portal", "gatein.db.data.dir"));
-      assertEquals("jdbc:hsqldb:file:../gatein/data/db/data/jdbcjcr_portal", config.getSetting("portal",
-         "gatein.jcr.datasource.url"));
-      } finally {
-         clearSystemProperties();
-      }
-
-      try {
       // With external settings, with several portal container definitions and with
       // default portal container definition
       rootContainer =
@@ -1690,6 +1678,7 @@ public class TestPortalContainerConfig extends AbstractTestContainer
          clearSystemProperties();
       }
 
+      try {
       // With both settings internal and external, and with invalid values
       rootContainer = createRootContainer("portal-container-config-with-invalid-values.xml");
       config = (PortalContainerConfig)rootContainer.getComponentInstanceOfType(PortalContainerConfig.class);
@@ -1708,6 +1697,28 @@ public class TestPortalContainerConfig extends AbstractTestContainer
       assertEquals("my-exo-domain", config.getSetting("foo", PortalContainerConfig.REALM_SETTING_NAME));
       assertEquals("my-exo-domain", config.getSetting("myPortal", PortalContainerConfig.REALM_SETTING_NAME));
       assertEquals("my-exo-domain", config.getSetting("myPortal-pcdef", PortalContainerConfig.REALM_SETTING_NAME));
+      } finally {
+         System.getProperties().remove("TestPortalContainerConfig-string");
+         System.getProperties().remove("TestPortalContainerConfig-int");
+         clearSystemProperties();
+      }
+   }
+
+   public void testSimpleSetting() {
+      try {
+         RootContainer rootContainer = createRootContainer("empty-config.xml");
+         PortalContainerConfig config =
+                 (PortalContainerConfig)rootContainer.getComponentInstanceOfType(PortalContainerConfig.class);
+         assertNull(config);
+         rootContainer = createRootContainer("sample-gtn-configuration.xml");
+         config = (PortalContainerConfig)rootContainer.getComponentInstanceOfType(PortalContainerConfig.class);
+         assertEquals("../gatein/data", config.getSetting("portal", "gatein.data.dir"));
+         assertEquals("../gatein/data/db", config.getSetting("portal", "gatein.db.data.dir"));
+         assertEquals("jdbc:hsqldb:file:../gatein/data/db/data/jdbcjcr_portal", config.getSetting("portal",
+                 "gatein.jcr.datasource.url"));
+      } finally {
+         clearSystemProperties();
+      }
    }
 
    public static class TestPortalContainerDefinitionChange implements PortalContainerDefinitionChange
