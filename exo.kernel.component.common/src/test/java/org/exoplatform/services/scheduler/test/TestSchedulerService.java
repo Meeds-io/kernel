@@ -375,15 +375,17 @@ public class TestSchedulerService extends SchedulerServiceTestBase
       assertTrue("expect Global Trigger Listener is removed", b);
    }
    
-   public void testgetAvailableJobs() throws Exception
+   public void testGetAvailableJobs() throws Exception
    {
+      resetTestEnvironment();
       List<JobDetail> availableJobs = service_.getAllJobs();
       int size = availableJobs.size();
       // some information about job execution
       Date firedTime = new Date(System.currentTimeMillis() + 1000000);
       service_.addJob(new JobInfo("queuejob", null/* default group */, AJob.class), firedTime);
       availableJobs = service_.getAllJobs();
-      assertEquals("Expect one job inthe queue", size + 1, availableJobs.size());
+      Thread.sleep(100);
+      assertEquals("Expect one job in the queue", size + 1, availableJobs.size());
    }
    
    public static class MyContainerLifecyclePlugin extends BaseContainerLifecyclePlugin

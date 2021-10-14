@@ -12,7 +12,7 @@
 				<object type="org.exoplatform.container.definition.PortalContainerDefinition">
 					<!-- The path to the external properties file -->
 					<field name="externalSettingsPath">
-						<string>sample-gtn-configuration.properties</string>
+						<string>classpath:/org/exoplatform/container/definition/sample-gtn-configuration.properties</string>
 					</field>                    
 				</object>
 			</object-param>
