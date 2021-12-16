@@ -92,7 +92,7 @@
          </value-param>
          <value-param>
             <name>configurator</name>
-            <value>org.exoplatform.services.log.impl.Log4JConfigurator</value>
+            <value>org.exoplatform.services.log.impl.SimpleExoLogConfigurator</value>
          </value-param>
          <properties-param>
             <name>properties</name>
@@ -109,33 +109,6 @@
          </properties-param>
       </init-params>
    </component>
-
-   <!-- JDK14 logger configuration -->
-   <!-- 
-   <component>
-      <key>org.exoplatform.services.log.LogConfigurationInitializer</key>
-      <type>org.exoplatform.services.log.LogConfigurationInitializer</type>
-      <init-params>
-         <value-param>
-            <name>logger</name>
-            <value>org.slf4j.Logger</value>
-         </value-param>
-         <value-param>
-            <name>configurator</name>
-            <value>org.exoplatform.services.log.impl.Jdk14Configurator</value>
-         </value-param>
-         <properties-param>
-            <name>properties</name>
-            <description>jdk1.4 Logger properties</description>
-            <property name="handlers" value="java.util.logging.ConsoleHandler,java.util.logging.FileHandler" />
-            <property name=".level" value="INFO" />
-            <property name="java.util.logging.ConsoleHandler.level" value="ALL" />
-            <property name="java.util.logging.FileHandler.pattern" value="./target/java%u.log" />
-            <property name="java.util.logging.FileHandler.formatter" value="java.util.logging.SimpleFormatter" />
-         </properties-param>
-      </init-params>
-   </component>
-   -->
 
    <component>
       <key>org.exoplatform.mocks.MockServiceA</key>

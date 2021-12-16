@@ -170,6 +170,12 @@
          <artifactId>junit</artifactId>
          <scope>test</scope>
       </dependency>
+
+      <!--log dependencies-->
+      <dependency>
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-classic</artifactId>
+      </dependency>
    </dependencies>
    
    <!-- This profile is used to allow github action to build branches. The github action is used for sonar analysis -->
