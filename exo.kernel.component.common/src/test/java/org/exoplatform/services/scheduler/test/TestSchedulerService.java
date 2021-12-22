@@ -56,7 +56,7 @@ public class TestSchedulerService extends SchedulerServiceTestBase
       }
       PortalContainer.setInstance(null);
       RootContainer.setInstance(null);
-   
+
       service_ = PortalContainer.getInstance().getComponentInstanceOfType(JobSchedulerService.class);
    }
 
@@ -95,7 +95,7 @@ public class TestSchedulerService extends SchedulerServiceTestBase
       jcontext = service_.getGlobalJobListener("JobContextConfigListener");
       assertTrue("expect JobContextConfigListenner is removed", b && jcontext == null);
       jobListenerCol = service_.getAllGlobalJobListener();
-      assertEquals("expect 1 job listenner is found", 0, jobListenerCol.size());
+      assertEquals("expect 0 job listenner is found", 0, jobListenerCol.size());
 
       // -----Test global trigger listener
       List<TriggerListener> triggerListenerCol = service_.getAllGlobalTriggerListener();
@@ -147,7 +147,7 @@ public class TestSchedulerService extends SchedulerServiceTestBase
       service_.addJob(new JobInfo("GlobalJobListener", null/* default group */, AJob.class), new Date());
       service_.addJob(new JobInfo("FirstJobListener", null/* default group */, AJob.class), new Date());
       service_.addJob(new JobInfo("SecondJobListener", null/* default group */, AJob.class), new Date());
-      Thread.sleep(100);
+      Thread.sleep(500);
       
       //Scheduler can be faster and execute more than 3 tasks
       assertTrue(GlobalJobListener.countCalled_ >= 3);
