@@ -88,7 +88,7 @@
       <init-params>
          <value-param>
             <name>logger</name>
-            <value>org.slf4j.Logger</value>
+            <value>org.exoplatform.services.log.impl.BufferedLog4JLogger</value>
          </value-param>
          <value-param>
             <name>configurator</name>
