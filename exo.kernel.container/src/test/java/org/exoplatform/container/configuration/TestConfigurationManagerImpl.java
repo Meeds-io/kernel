@@ -606,5 +606,40 @@ public class TestConfigurationManagerImpl extends TestCase
       public String getVirtualServerName() {
         return null;
       }
+
+      @Override
+      public Dynamic addJspFile(String servletName, String jspFile) {
+        return null;
+      }
+
+      @Override
+      public int getSessionTimeout() {
+        return 0;
+      }
+
+      @Override
+      public void setSessionTimeout(int sessionTimeout) {
+        
+      }
+
+      @Override
+      public String getRequestCharacterEncoding() {
+        return null;
+      }
+
+      @Override
+      public void setRequestCharacterEncoding(String encoding) {
+        
+      }
+
+      @Override
+      public String getResponseCharacterEncoding() {
+        return null;
+      }
+
+      @Override
+      public void setResponseCharacterEncoding(String encoding) {
+        
+      }
    }
 }
