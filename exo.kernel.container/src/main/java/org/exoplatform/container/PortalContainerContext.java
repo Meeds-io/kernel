@@ -60,8 +60,7 @@ import javax.servlet.descriptor.JspConfigDescriptor;
  *          nicolas.filotto@exoplatform.com
  * 14 sept. 2009  
  */
-class PortalContainerContext implements ServletContext
-{
+class PortalContainerContext implements ServletContext {
 
    /**
     * The weak reference to the related portal container
@@ -619,4 +618,39 @@ class PortalContainerContext implements ServletContext
    public String getVirtualServerName() {
      return getPortalContext().getVirtualServerName();
    }
+
+  @Override
+  public Dynamic addJspFile(String servletName, String jspFile) {
+    return getPortalContext().addJspFile(servletName, jspFile);
+  }
+
+  @Override
+  public int getSessionTimeout() {
+    return getPortalContext().getSessionTimeout();
+  }
+
+  @Override
+  public void setSessionTimeout(int sessionTimeout) {
+    getPortalContext().setSessionTimeout(sessionTimeout);
+  }
+
+  @Override
+  public String getRequestCharacterEncoding() {
+    return getPortalContext().getRequestCharacterEncoding();
+  }
+
+  @Override
+  public void setRequestCharacterEncoding(String encoding) {
+    getPortalContext().setRequestCharacterEncoding(encoding);
+  }
+
+  @Override
+  public String getResponseCharacterEncoding() {
+    return getPortalContext().getResponseCharacterEncoding();
+  }
+
+  @Override
+  public void setResponseCharacterEncoding(String encoding) {
+    getPortalContext().setResponseCharacterEncoding(encoding);
+  }
 }

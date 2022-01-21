@@ -51,7 +51,7 @@
       </dependency>
       <dependency>
          <groupId>javax.resource</groupId>
-         <artifactId>connector-api</artifactId>
+         <artifactId>javax.resource-api</artifactId>
          <scope>provided</scope>
       </dependency>
       <dependency>
@@ -70,13 +70,11 @@
       </dependency>
       <dependency>
          <groupId>javax.mail</groupId>
-         <artifactId>mail</artifactId>
-         <exclusions>
-            <exclusion>
-               <groupId>javax.activation</groupId>
-               <artifactId>activation</artifactId>
-            </exclusion>
-         </exclusions>
+         <artifactId>javax.mail-api</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>com.sun.mail</groupId>
+         <artifactId>javax.mail</artifactId>
       </dependency>
       <dependency>
          <groupId>org.jgroups</groupId>
@@ -139,11 +137,11 @@
       </dependency>
       <dependency>
         <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
+        <artifactId>javax.activation-api</artifactId>
       </dependency>
       <dependency>
         <groupId>javax.transaction</groupId>
-        <artifactId>jta</artifactId>
+        <artifactId>javax.transaction-api</artifactId>
       </dependency>
    </dependencies>
    <build>

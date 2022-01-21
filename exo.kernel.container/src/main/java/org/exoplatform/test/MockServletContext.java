@@ -40,6 +40,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import javax.servlet.ServletRegistration.Dynamic;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
@@ -376,4 +377,39 @@ public class MockServletContext implements ServletContext
    public String getVirtualServerName() {
       return null;
    }
+
+  @Override
+  public Dynamic addJspFile(String servletName, String jspFile) {
+    return null;
+  }
+
+  @Override
+  public int getSessionTimeout() {
+    return 0;
+  }
+
+  @Override
+  public void setSessionTimeout(int sessionTimeout) {
+    
+  }
+
+  @Override
+  public String getRequestCharacterEncoding() {
+    return null;
+  }
+
+  @Override
+  public void setRequestCharacterEncoding(String encoding) {
+    
+  }
+
+  @Override
+  public String getResponseCharacterEncoding() {
+    return null;
+  }
+
+  @Override
+  public void setResponseCharacterEncoding(String encoding) {
+    
+  }
 }
