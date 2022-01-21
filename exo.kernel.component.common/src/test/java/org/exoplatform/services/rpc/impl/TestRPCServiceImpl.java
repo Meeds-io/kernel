@@ -287,7 +287,7 @@ public class TestRPCServiceImpl extends TestCase
          }
          try
          {
-            service.executeCommandOnCoordinator(foo, 10);
+            service.executeCommandOnCoordinator(foo, 100);
             fail("We expect a RPCException since the current state is not the expected one");
          }
          catch (RPCException e)
@@ -306,9 +306,9 @@ public class TestRPCServiceImpl extends TestCase
          service.start();
          assertEquals(true, service.isCoordinator());
          service.executeCommandOnAllNodes(foo, true);
-         service.executeCommandOnAllNodes(foo, 10);
+         service.executeCommandOnAllNodes(foo, 100);
          service.executeCommandOnCoordinator(foo, true);
-         service.executeCommandOnCoordinator(foo, 10);
+         service.executeCommandOnCoordinator(foo, 100);
       }
       finally
       {
@@ -346,7 +346,7 @@ public class TestRPCServiceImpl extends TestCase
       }
       try
       {
-         service.executeCommandOnCoordinator(foo, 10);
+         service.executeCommandOnCoordinator(foo, 100);
          fail("We expect a RPCException since the current state is not the expected one");
       }
       catch (RPCException e)
