@@ -33,7 +33,7 @@
 
    <groupId>org.exoplatform.kernel</groupId>
    <artifactId>kernel-parent</artifactId>
-   <version>6.4.x-SNAPSHOT</version>
+   <version>6.4.x-meedsv2-SNAPSHOT</version>
    <packaging>pom</packaging>
 
    <name>eXo PLF:: Kernel</name>
@@ -41,7 +41,7 @@
 
    <properties>
       <!-- PLF project dependencies -->
-      <org.exoplatform.gatein.wci.version>6.4.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
+      <org.exoplatform.gatein.wci.version>6.4.x-meedsv2-SNAPSHOT</org.exoplatform.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
       <spymemcached.version>2.12.3</spymemcached.version>
