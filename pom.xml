@@ -28,7 +28,7 @@
     <artifactId>maven-parent-pom</artifactId>
     <groupId>org.exoplatform</groupId>
     <version>24-M03</version>
-    <relativePath />
+    <relativePath/>
    </parent>
 
    <groupId>org.exoplatform.kernel</groupId>
@@ -44,7 +44,7 @@
       <org.exoplatform.gatein.wci.version>6.3.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
-      <spymemcached.version>2.10.0</spymemcached.version>
+      <spymemcached.version>2.12.3</spymemcached.version>
       <spring-context.version>3.2.4.RELEASE</spring-context.version>
    
       <!-- Sonar properties -->
