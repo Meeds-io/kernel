@@ -45,7 +45,7 @@
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
       <spymemcached.version>2.12.3</spymemcached.version>
-      <spring-context.version>3.2.4.RELEASE</spring-context.version>
+      <spring-context.version>5.3.17</spring-context.version>
    
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
