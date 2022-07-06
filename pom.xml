@@ -27,13 +27,13 @@
    <parent>
     <artifactId>maven-parent-pom</artifactId>
     <groupId>org.exoplatform</groupId>
-    <version>26</version>
+    <version>27-meed-M02</version>
     <relativePath/>
    </parent>
 
    <groupId>org.exoplatform.kernel</groupId>
    <artifactId>kernel-parent</artifactId>
-   <version>6.6.x-SNAPSHOT</version>
+   <version>6.6.x-meed-SNAPSHOT</version>
    <packaging>pom</packaging>
 
    <name>eXo PLF:: Kernel</name>
@@ -41,7 +41,7 @@
 
    <properties>
       <!-- PLF project dependencies -->
-      <org.exoplatform.gatein.wci.version>6.6.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
+      <org.exoplatform.gatein.wci.version>6.6.x-meed-SNAPSHOT</org.exoplatform.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
 
