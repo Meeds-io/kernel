@@ -173,7 +173,7 @@ public class ListenerService implements Startable
     * @param data The data object instance
     * @throws Exception if an exception occurs
     */
-   final public <S, D> void broadcast(String name, S source, D data) throws Exception
+   public <S, D> void broadcast(String name, S source, D data) throws Exception
    {
       List<Listener> list = listeners_.get(name);
       if (list == null)
@@ -208,7 +208,7 @@ public class ListenerService implements Startable
     * @param event The event instance
     * @throws Exception
     */
-   final public <T extends Event> void broadcast(T event) throws Exception
+   public <T extends Event> void broadcast(T event) throws Exception
    {
       List<Listener> list = listeners_.get(event.getEventName());
       if (list == null)
