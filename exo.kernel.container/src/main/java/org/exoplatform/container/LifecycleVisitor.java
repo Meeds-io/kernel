@@ -19,6 +19,7 @@
 package org.exoplatform.container;
 
 import org.exoplatform.commons.utils.PropertyManager;
+import org.exoplatform.container.component.RequestLifeCycle;
 import org.exoplatform.container.spi.Container;
 import org.exoplatform.container.spi.ContainerException;
 import org.exoplatform.container.spi.ContainerVisitor;
@@ -98,6 +99,10 @@ public class LifecycleVisitor implements ContainerVisitor
             if (PropertyManager.isDevelopping()) {
               LOG.info("{} Service {} ", method.getName().toUpperCase(), o.getClass().getName());
             }
+            ExoContainer currentContainer = ExoContainerContext.getCurrentContainerIfPresent();
+            if (currentContainer != null) {
+              RequestLifeCycle.begin(currentContainer);
+            }
             try
             {
                method.invoke(o, (Object[])null);
@@ -141,6 +146,9 @@ public class LifecycleVisitor implements ContainerVisitor
             } finally {
               if (PropertyManager.isDevelopping()) {
                 LOG.info("Service {} took {}ms to {}", o.getClass().getName(), (System.currentTimeMillis() - startTime), method.getName().toUpperCase());
+              }
+              if (currentContainer != null) {
+                RequestLifeCycle.end();
               }
             }
          }
