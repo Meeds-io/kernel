@@ -73,13 +73,23 @@ public class LifecycleVisitor implements ContainerVisitor
 
    private final boolean ignoreError;
 
-   public LifecycleVisitor(Method method, Class<?> ofType, boolean visitInInstantiationOrder, boolean ignoreError)
-   {
-      this.method = method;
-      this.type = ofType;
-      this.visitInInstantiationOrder = visitInInstantiationOrder;
-      this.componentInstances = new ArrayList<Object>();
-      this.ignoreError = ignoreError;
+   private final boolean startTransaction;
+
+   public LifecycleVisitor(Method method, Class<?> ofType, boolean visitInInstantiationOrder, boolean ignoreError) {
+     this(method, ofType, visitInInstantiationOrder, ignoreError, false);
+   }
+
+   public LifecycleVisitor(Method method,
+                           Class<?> ofType,
+                           boolean visitInInstantiationOrder,
+                           boolean ignoreError,
+                           boolean startTransaction) {
+     this.method = method;
+     this.type = ofType;
+     this.visitInInstantiationOrder = visitInInstantiationOrder;
+     this.componentInstances = new ArrayList<Object>();
+     this.ignoreError = ignoreError;
+     this.startTransaction = startTransaction;
    }
 
    private Object traverse(Container container)
@@ -100,7 +110,8 @@ public class LifecycleVisitor implements ContainerVisitor
               LOG.info("{} Service {} ", method.getName().toUpperCase(), o.getClass().getName());
             }
             ExoContainer currentContainer = ExoContainerContext.getCurrentContainerIfPresent();
-            if (currentContainer != null) {
+            boolean encapsulateByTransaction = currentContainer != null && startTransaction;
+            if (encapsulateByTransaction) {
               RequestLifeCycle.begin(currentContainer);
             }
             try
@@ -147,7 +158,7 @@ public class LifecycleVisitor implements ContainerVisitor
               if (PropertyManager.isDevelopping()) {
                 LOG.info("Service {} took {}ms to {}", o.getClass().getName(), (System.currentTimeMillis() - startTime), method.getName().toUpperCase());
               }
-              if (currentContainer != null) {
+              if (encapsulateByTransaction) {
                 RequestLifeCycle.end();
               }
             }
@@ -171,7 +182,7 @@ public class LifecycleVisitor implements ContainerVisitor
     */
    public static void start(Container container)
    {
-      new LifecycleVisitor(START, Startable.class, true, false).traverse(container);
+      new LifecycleVisitor(START, Startable.class, true, false, true).traverse(container);
    }
 
    /**
@@ -180,7 +191,7 @@ public class LifecycleVisitor implements ContainerVisitor
     */
    public static void stop(Container container)
    {
-      new LifecycleVisitor(STOP, Startable.class, false, true).traverse(container);
+      new LifecycleVisitor(STOP, Startable.class, false, true, true).traverse(container);
    }
 
    /**
