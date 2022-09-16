@@ -22,6 +22,7 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
+import org.exoplatform.commons.Environment;
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.commons.utils.PropertiesLoader;
 import org.exoplatform.commons.utils.SecurityHelper;
@@ -64,6 +65,8 @@ import javax.inject.Provider;
 import javax.inject.Scope;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
+
+import static org.exoplatform.commons.Environment.JBOSS_PLATFORM;
 
 /**
  * @author Tuan Nguyen (tuan08@users.sourceforge.net)
@@ -299,16 +302,6 @@ public class ContainerUtil
          {
             continue;
          }
-         // jboss bug, jboss has a very weird behavior. It copy all the jar files
-         // and
-         // deploy them to a temp dir and include both jars, the one in sar and tmp
-         // dir,
-         // in the class path. It cause the configuration run twice
-         int index1 = key.lastIndexOf("exo-");
-         int index2 = key.lastIndexOf("exo.");
-         int index = index1 < index2 ? index2 : index1;
-         if (index >= 0)
-            key = key.substring(index);
          map.put(key, url);
       }
 
