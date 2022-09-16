@@ -65,6 +65,7 @@ import javax.inject.Scope;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 
+
 /**
  * @author Tuan Nguyen (tuan08@users.sourceforge.net)
  * @since Oct 28, 2004
@@ -299,16 +300,6 @@ public class ContainerUtil
          {
             continue;
          }
-         // jboss bug, jboss has a very weird behavior. It copy all the jar files
-         // and
-         // deploy them to a temp dir and include both jars, the one in sar and tmp
-         // dir,
-         // in the class path. It cause the configuration run twice
-         int index1 = key.lastIndexOf("exo-");
-         int index2 = key.lastIndexOf("exo.");
-         int index = index1 < index2 ? index2 : index1;
-         if (index >= 0)
-            key = key.substring(index);
          map.put(key, url);
       }
 
