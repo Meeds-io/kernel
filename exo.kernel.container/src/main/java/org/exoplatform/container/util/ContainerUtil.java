@@ -22,7 +22,6 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-import org.exoplatform.commons.Environment;
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.commons.utils.PropertiesLoader;
 import org.exoplatform.commons.utils.SecurityHelper;
@@ -66,7 +65,6 @@ import javax.inject.Scope;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 
-import static org.exoplatform.commons.Environment.JBOSS_PLATFORM;
 
 /**
  * @author Tuan Nguyen (tuan08@users.sourceforge.net)
