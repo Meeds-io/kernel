@@ -29,7 +29,6 @@ import org.exoplatform.services.scheduler.JobInfo;
 import org.exoplatform.services.scheduler.JobSchedulerService;
 import org.exoplatform.services.scheduler.PeriodInfo;
 import org.quartz.Job;
-import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
@@ -50,18 +49,17 @@ public class TestSchedulerService extends SchedulerServiceTestBase
 
    public void setUp() throws Exception
    {
-      ExoContainer topContainer = ExoContainerContext.getTopContainer();
-      if(topContainer != null) {
-         topContainer.stop();
-      }
-      PortalContainer.setInstance(null);
-      RootContainer.setInstance(null);
-
       service_ = PortalContainer.getInstance().getComponentInstanceOfType(JobSchedulerService.class);
    }
 
    public void tearDown() throws Exception
    {
+     ExoContainer topContainer = ExoContainerContext.getTopContainer();
+     if(topContainer != null) {
+        topContainer.stop();
+     }
+     PortalContainer.setInstance(null);
+     RootContainer.setInstance(null);
    }
 
    public void testQueueTask() throws Exception
@@ -378,14 +376,13 @@ public class TestSchedulerService extends SchedulerServiceTestBase
    public void testGetAvailableJobs() throws Exception
    {
       resetTestEnvironment();
-      List<JobDetail> availableJobs = service_.getAllJobs();
-      int size = availableJobs.size();
+      Thread.sleep(100);
+      int initSize = service_.getAllJobs().size();
       // some information about job execution
       Date firedTime = new Date(System.currentTimeMillis() + 1000000);
-      service_.addJob(new JobInfo("queuejob", null/* default group */, AJob.class), firedTime);
-      availableJobs = service_.getAllJobs();
+      service_.addJob(new JobInfo("queuejobTest", null/* default group */, AJob.class), firedTime);
       Thread.sleep(100);
-      assertEquals("Expect one job in the queue", size + 1, availableJobs.size());
+      assertEquals("Expect one job in the queue", initSize + 1, service_.getAllJobs().size());
    }
    
    public static class MyContainerLifecyclePlugin extends BaseContainerLifecyclePlugin
