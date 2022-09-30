@@ -49,18 +49,17 @@ public class TestSchedulerService extends SchedulerServiceTestBase
 
    public void setUp() throws Exception
    {
-      ExoContainer topContainer = ExoContainerContext.getTopContainer();
-      if(topContainer != null) {
-         topContainer.stop();
-      }
-      PortalContainer.setInstance(null);
-      RootContainer.setInstance(null);
-
       service_ = PortalContainer.getInstance().getComponentInstanceOfType(JobSchedulerService.class);
    }
 
    public void tearDown() throws Exception
    {
+     ExoContainer topContainer = ExoContainerContext.getTopContainer();
+     if(topContainer != null) {
+        topContainer.stop();
+     }
+     PortalContainer.setInstance(null);
+     RootContainer.setInstance(null);
    }
 
    public void testQueueTask() throws Exception
