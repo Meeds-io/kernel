@@ -53,13 +53,22 @@
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>
+       <dependency>
+           <groupId>org.exoplatform.kernel</groupId>
+           <artifactId>exo.kernel.container</artifactId>
+           <scope>test</scope>
+       </dependency>
+      <dependency>
+         <groupId>org.exoplatform.kernel</groupId>
+         <artifactId>exo.kernel.container</artifactId>
+      </dependency>
    </dependencies>
    <build>
       <plugins>
          <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>@{argLine} ${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+              <argLine>@{argLine} ${env.MAVEN_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
             </configuration>
          </plugin>
          <plugin>
