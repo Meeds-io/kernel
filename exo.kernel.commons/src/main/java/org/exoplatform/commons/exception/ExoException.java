@@ -21,9 +21,9 @@ package org.exoplatform.commons.exception;
 import java.util.ResourceBundle;
 
 /**
- * @author: Tuan Nguyen
- * @version: $Id: ExoException.java,v 1.5 2004/11/03 01:24:55 tuan08 Exp $
- * @since: 0.0
+ * @author Tuan Nguyen
+ * @version $Id: ExoException.java,v 1.5 2004/11/03 01:24:55 tuan08 Exp $
+ * @since 0.0
  */
 abstract public class ExoException extends Exception
 {

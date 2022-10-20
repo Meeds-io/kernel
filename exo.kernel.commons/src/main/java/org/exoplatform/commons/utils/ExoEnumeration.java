@@ -19,8 +19,8 @@
 package org.exoplatform.commons.utils;
 
 /** * Jul 11, 2004 
- * @author: Tuan Nguyen
- * @version: $Id: ExoEnumeration.java,v 1.3 2004/07/13 02:46:19 tuan08 Exp $
+ * @author Tuan Nguyen
+ * @version $Id: ExoEnumeration.java,v 1.3 2004/07/13 02:46:19 tuan08 Exp $
  */
 
 import java.util.Enumeration;

@@ -48,8 +48,8 @@ import java.util.Set;
  * dir/to/foo.xml, the configuration manager will try to get the file from file:///path/to/my/dir/to/foo.xml. 
  * Please note that it works also for other prefixes</li>
  * </ul>
- * @author: Tuan Nguyen
- * @version: $Id: ConfigurationManager.java 5799 2006-05-28 17:55:42Z geaz $
+ * @author Tuan Nguyen
+ * @version $Id: ConfigurationManager.java 5799 2006-05-28 17:55:42Z geaz $
  */
 public interface ConfigurationManager
 {
