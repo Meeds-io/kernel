@@ -53,15 +53,6 @@
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>
-       <dependency>
-           <groupId>org.exoplatform.kernel</groupId>
-           <artifactId>exo.kernel.container</artifactId>
-           <scope>test</scope>
-       </dependency>
-      <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
-         <artifactId>exo.kernel.container</artifactId>
-      </dependency>
    </dependencies>
    <build>
       <plugins>

@@ -31,8 +31,8 @@ import javax.servlet.ServletContext;
 /**
  * Jul 19, 2004
  * 
- * @author: Tuan Nguyen
- * @version: $Id: MockConfigurationManagerImpl.java 5799 2006-05-28 17:55:42Z
+ * @author Tuan Nguyen
+ * @version $Id: MockConfigurationManagerImpl.java 5799 2006-05-28 17:55:42Z
  *           geaz $
  */
 public class MockConfigurationManagerImpl extends ConfigurationManagerImpl
