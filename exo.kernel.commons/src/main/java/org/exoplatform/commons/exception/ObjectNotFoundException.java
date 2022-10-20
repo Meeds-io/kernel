@@ -19,9 +19,9 @@
 package org.exoplatform.commons.exception;
 
 /*
- * @author: Tuan Nguyen
- * @version: $Id: ObjectNotFoundException.java,v 1.2 2004/04/06 21:07:18 tuan08 Exp $
- * @since: 0.0
+ * @author Tuan Nguyen
+ * @version $Id: ObjectNotFoundException.java,v 1.2 2004/04/06 21:07:18 tuan08 Exp $
+ * @since 0.0
  */
 public class ObjectNotFoundException extends Exception
 {

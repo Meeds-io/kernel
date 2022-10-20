@@ -28,9 +28,9 @@ import java.lang.management.ThreadMXBean;
 /**
  * Thu, May 15, 2003 @
  * 
- * @author: Tuan Nguyen
- * @version: $Id: TestJVMManagement.java 5799 2006-05-28 17:55:42Z geaz $
- * @since: 0.0
+ * @author Tuan Nguyen
+ * @version $Id: TestJVMManagement.java 5799 2006-05-28 17:55:42Z geaz $
+ * @since 0.0
  */
 public class TestJVMManagement extends TestCase
 {
