@@ -21,8 +21,8 @@ package org.exoplatform.container.xml;
 /**
  * Jul 19, 2004
  * 
- * @author: Tuan Nguyen
- * @version: $Id: ValueParam.java 5799 2006-05-28 17:55:42Z geaz $
+ * @author Tuan Nguyen
+ * @version $Id: ValueParam.java 5799 2006-05-28 17:55:42Z geaz $
  */
 public class ValueParam extends Parameter
 {
