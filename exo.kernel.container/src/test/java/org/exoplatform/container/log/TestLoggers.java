@@ -38,16 +38,12 @@ public class TestLoggers extends TestCase
 
    public void testLog4jContainer() throws Exception
    {
-
-      PortalContainer.getInstance();
       Log log = ExoLogger.getLogger(TestLoggers.class);
-
       log.info("Log4j Container Tests");
       log.info("Log4j Container {}", "Tests");
       log.info("Log4j Conta{} Te{}", "iner", "sts");
       log.info("Log4j Container Tests", 1, 2, 3);
       logOut(log);
-
    }
 
 
