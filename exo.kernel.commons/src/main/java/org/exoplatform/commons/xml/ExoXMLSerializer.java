@@ -23,8 +23,8 @@ import org.xmlpull.mxp1_serializer.MXSerializer;
 /**
  * Jul 8, 2004
  * 
- * @author: Tuan Nguyen
- * @version: $Id: ExoXMLSerializer.java,v 1.1 2004/07/08 19:24:47 tuan08 Exp $
+ * @author Tuan Nguyen
+ * @version $Id: ExoXMLSerializer.java,v 1.1 2004/07/08 19:24:47 tuan08 Exp $
  */
 public class ExoXMLSerializer extends MXSerializer
 {

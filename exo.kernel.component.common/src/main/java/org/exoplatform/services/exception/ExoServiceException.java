@@ -22,9 +22,9 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 /**
- * @author: Tuan Nguyen
- * @version: $Id: ExoServiceException.java 5332 2006-04-29 18:32:44Z geaz $
- * @since: 0.0
+ * @author Tuan Nguyen
+ * @version $Id: ExoServiceException.java 5332 2006-04-29 18:32:44Z geaz $
+ * @since 0.0
  */
 public class ExoServiceException extends Exception
 {

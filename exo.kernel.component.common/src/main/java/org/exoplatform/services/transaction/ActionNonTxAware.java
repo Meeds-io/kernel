@@ -84,7 +84,7 @@ public abstract class ActionNonTxAware<R, A, E extends Exception>
    /**
     * Executes the action outside the context of the current tx. This
     * method is equivalent to {@link ActionNonTxAware#run(Object[])}} but
-    * with <tt>null</tt> as parameter.
+    * with <code>null</code> as parameter.
     * @return the result of the action
     * @throws E if an error occurs while executing the action
     */

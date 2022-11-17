@@ -22,7 +22,7 @@ import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 /*
- * @author: Tuan Nguyen
+ * @author Tuan Nguyen
  * @version: $Id: ExoMessageException.java,v 1.2 2004/11/03 01:24:55 tuan08 Exp $
  * @since: 0.0
  */

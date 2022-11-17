@@ -30,8 +30,8 @@ import java.util.Map;
 /**
  * Jul 29, 2004
  * 
- * @author: Tuan Nguyen
- * @version: $Id: ObjectDebuger.java,v 1.4 2004/09/21 00:04:43 tuan08 Exp $
+ * @author Tuan Nguyen
+ * @version $Id: ObjectDebuger.java,v 1.4 2004/09/21 00:04:43 tuan08 Exp $
  */
 public class ObjectDebuger
 {

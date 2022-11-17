@@ -61,14 +61,14 @@ public class SingleMethodCallCommand implements RemoteCommand
      *             <ul>
      *
      *             <li> invocation of 
-     *             <tt>{@link SecurityManager#checkMemberAccess
-     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             <code>{@link SecurityManager #checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</code> denies
      *             access to the declared method
      *
      *             <li> the caller's class loader is not the same as or an
      *             ancestor of the class loader for the current class and
-     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
-     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             invocation of <code>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</code> denies access to the package
      *             of this class
      *
      *             </ul>
