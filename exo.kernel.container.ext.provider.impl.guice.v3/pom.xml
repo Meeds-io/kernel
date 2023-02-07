@@ -27,14 +27,11 @@
       <artifactId>kernel-parent</artifactId>
       <version>6.6.x-devx-SNAPSHOT</version>
    </parent>
-   <artifactId>exo.kernel.container.mt</artifactId>
-   <name>eXo PLF:: Kernel :: Container Multi-Threaded</name>
-   <description>Implementation of Container Multi-Threaded for Exoplatform SAS 'eXo Kernel' project.</description>
+   <artifactId>exo.kernel.container.ext.provider.impl.guice.v3</artifactId>
+   <name>eXo PLF:: Kernel :: Container Extension :: Guice Implementation</name>
+   <description>A component provider based on Guice.</description>
    <properties>
-      <debug.opts />
-      <argLine>-Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy ${debug.opts}</argLine>
       <exo.test.coverage.ratio>0.8</exo.test.coverage.ratio>
-
    </properties>
    <dependencies>
       <dependency>
@@ -44,88 +41,26 @@
       <dependency>
          <groupId>org.exoplatform.kernel</groupId>
          <artifactId>exo.kernel.container</artifactId>
-         <classifier>tests</classifier>
+         <type>test-jar</type>
          <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>javax.inject</groupId>
-         <artifactId>javax.inject-tck</artifactId>
-         <version>1</version>
-         <scope>test</scope>
+         <groupId>com.google.inject</groupId>
+         <artifactId>guice</artifactId>
       </dependency>
       <dependency>
          <groupId>org.exoplatform.kernel</groupId>
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>
-      <dependency>
-         <groupId>org.javassist</groupId>
-         <artifactId>javassist</artifactId>
-         <scope>provided</scope>
-      </dependency>
    </dependencies>
    <build>
       <plugins>
          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-               <execution>
-                  <id>unpack</id>
-                  <phase>generate-test-sources</phase>
-                  <goals>
-                     <goal>unpack</goal>
-                  </goals>
-                  <configuration>
-                     <artifactItems>
-                        <artifactItem>
-                           <groupId>org.exoplatform.kernel</groupId>
-                           <artifactId>exo.kernel.container</artifactId>
-                           <classifier>test-sources</classifier>
-                           <type>jar</type>
-                           <overWrite>false</overWrite>
-                        </artifactItem>
-                     </artifactItems>
-                     <excludes>**/TestContainer.java</excludes>
-                     <outputDirectory>${project.build.directory}/kernel-container-tests</outputDirectory>
-                  </configuration>
-               </execution>
-            </executions>
-         </plugin>
-         <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-               <execution>
-                  <id>add-test-resource</id>
-                  <phase>generate-test-sources</phase>
-                  <goals>
-                     <goal>add-test-resource</goal>
-                  </goals>
-                  <configuration>
-                     <resources>
-                        <resource>
-                           <directory>${project.build.directory}/kernel-container-tests</directory>
-                           <excludes>
-                              <exclude>**/TestContainer.java</exclude>
-                           </excludes>
-                        </resource>
-                     </resources>
-                  </configuration>
-               </execution> 
-               <execution>
-                  <id>add-test-source</id>
-                  <phase>generate-test-sources</phase>
-                  <goals>
-                     <goal>add-test-source</goal>
-                  </goals>
-                  <configuration>
-                     <sources>
-                        <source>${project.build.directory}/kernel-container-tests</source>
-                     </sources>
-                  </configuration>
-               </execution>
-            </executions>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>@{argLine} ${env.MAVEN_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+            </configuration>
          </plugin>
          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
@@ -156,15 +91,14 @@
                   </goals>
                </execution>
             </executions>
+            <dependencies>
+               <dependency>
+                  <groupId>ant</groupId>
+                  <artifactId>ant-optional</artifactId>
+                  <version>1.5.3-1</version>
+               </dependency>
+            </dependencies>
          </plugin>
       </plugins>
    </build>
-   <profiles>
-      <profile>
-         <id>debug</id>
-         <properties>
-            <debug.opts>-Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y</debug.opts>
-         </properties>
-      </profile>
-   </profiles>
 </project>

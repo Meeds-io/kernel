@@ -21,24 +21,19 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
    <modelVersion>4.0.0</modelVersion>
-
    <parent>
       <groupId>org.exoplatform.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
       <version>6.6.x-devx-SNAPSHOT</version>
    </parent>
-
-   <artifactId>exo.kernel.component.command</artifactId>
-
-   <name>eXo PLF:: Kernel :: Component :: Command Service</name>
-   <description>Implementation of Command Service of Exoplatform SAS 'eXo Kernel' project.</description>
-
+   <artifactId>exo.kernel.container.ext.provider.impl.spring.v3</artifactId>
+   <name>eXo PLF:: Kernel :: Container Extension :: Spring Implementation</name>
+   <description>A component provider based on Spring.</description>
    <properties>
-      <exo.test.coverage.ratio>0.4</exo.test.coverage.ratio>
+      <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+      <exo.test.coverage.ratio>0.7</exo.test.coverage.ratio>
    </properties>
-
    <dependencies>
       <dependency>
          <groupId>org.exoplatform.kernel</groupId>
@@ -46,37 +41,35 @@
       </dependency>
       <dependency>
          <groupId>org.exoplatform.kernel</groupId>
-         <artifactId>exo.kernel.commons.test</artifactId>
+         <artifactId>exo.kernel.container</artifactId>
+         <type>test-jar</type>
          <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>io.github.weblegacy</groupId>
-         <artifactId>commons-chain-web-jakarta-servlet</artifactId>
+         <groupId>org.springframework</groupId>
+         <artifactId>spring-context</artifactId>
          <exclusions>
             <exclusion>
-               <groupId>xml-apis</groupId>
-               <artifactId>xml-apis</artifactId>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
             </exclusion>
          </exclusions>
       </dependency>
       <dependency>
-         <groupId>commons-digester</groupId>
-         <artifactId>commons-digester</artifactId>
-         <exclusions>
-            <exclusion>
-               <groupId>commons-logging</groupId>
-               <artifactId>commons-logging</artifactId>
-            </exclusion>
-         </exclusions>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.exoplatform.kernel</groupId>
+         <artifactId>exo.kernel.commons.test</artifactId>
+         <scope>test</scope>
       </dependency>
    </dependencies>
    <build>
       <plugins>
          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
-            <configuration>
-              <argLine>@{argLine} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
-            </configuration>
             <executions>
                <execution>
                   <id>prepare-test-policy</id>
@@ -97,13 +90,20 @@
                               <filter token="TEST_CLASSES" value="${testOutputDirectoryURL}" />
                            </filterset>
                         </copy>
-                     </target>                     
+                     </target>
                   </configuration>
                   <goals>
                      <goal>run</goal>
                   </goals>
                </execution>
             </executions>
+            <dependencies>
+               <dependency>
+                  <groupId>ant</groupId>
+                  <artifactId>ant-optional</artifactId>
+                  <version>1.5.3-1</version>
+               </dependency>
+            </dependencies>
          </plugin>
       </plugins>
    </build>
