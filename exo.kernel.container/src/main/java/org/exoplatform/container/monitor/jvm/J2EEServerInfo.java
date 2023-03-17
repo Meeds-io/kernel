@@ -18,6 +18,7 @@
  */
 package org.exoplatform.container.monitor.jvm;
 
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ar.Archive;
 import org.exoplatform.services.log.ExoLogger;
@@ -71,7 +72,7 @@ public class J2EEServerInfo
 
    private List<String> appDeployDirectories_;
 
-   private Set<Archive> appDeployArchives_;
+   private Set<Archive> appDeployArchives_ = new HashSet<>(Arrays.asList(Archive.EAR, Archive.WAR));
 
    private MBeanServer mbeanServer;
 
@@ -209,7 +210,7 @@ public class J2EEServerInfo
                serverName_ = "tomcat";
                serverHome_ = catalinaHome;
                appDeployDirectories_ = Collections.singletonList(new File(catalinaHome, "webapps").getAbsolutePath());
-               appDeployArchives_ = Collections.singleton(new Archive("war", true, false, null));
+               appDeployArchives_ = Collections.singleton(new Archive("war", PropertyManager.isDevelopping(), false, null));
             }
             else if (testHome != null)
             {
@@ -270,10 +271,6 @@ public class J2EEServerInfo
             {
                if (logEnabled && LOG.isInfoEnabled())
                   LOG.info("No location of the archives has been set");
-            }
-            else if (appDeployArchives_ == null)
-            {
-               appDeployArchives_ = new HashSet<Archive>(Arrays.asList(Archive.EAR, Archive.WAR));
             }
             serverHome_ = serverHome_.replace('\\', '/');
             exoConfDir_ = exoConfDir_.replace('\\', '/');

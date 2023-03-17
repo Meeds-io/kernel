@@ -906,8 +906,11 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
          service.addConfiguration(ContainerUtil.getConfigurationURL("conf/test-configuration.xml"));
       }
       J2EEServerInfo serverEnv = rootContainer.getServerEnvironment();
-      service.addConfiguration(Archive.getConfigurationURL(serverEnv.getApplicationDeployDirectories(),
-         serverEnv.getApplicationDeployArchives(), "META-INF/exo-conf/configuration.xml"));
+      Collection<URL> configurationUrls = Archive.getConfigurationURL(serverEnv.getApplicationDeployDirectories(),
+                                                                      serverEnv.getApplicationDeployArchives(),
+                                                                      "META-INF/exo-conf/configuration.xml");
+      configurationUrls.forEach(configurationUrl -> LOG.info("Including addon configuration file {} in portal container", configurationUrl));
+      service.addConfiguration(configurationUrls);
       String confDir = serverEnv.getExoConfigurationDirectory();
       String overrideConf = confDir + "/configuration.xml";
       File file = new File(overrideConf);
