@@ -46,7 +46,8 @@
       <subethasmtp.version>3.1.7</subethasmtp.version>
       <spymemcached.version>2.12.3</spymemcached.version>
       <spring-context.version>3.2.4.RELEASE</spring-context.version>
-   
+      <org.apache.ws.commons.version>1.0.1</org.apache.ws.commons.version>
+
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
    </properties>
@@ -160,6 +161,11 @@
             <groupId>net.spy</groupId>
             <artifactId>spymemcached</artifactId>
             <version>${spymemcached.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.ws.commons</groupId>
+            <artifactId>ws-commons-util</artifactId>
+            <version>${org.apache.ws.commons.version}</version>
          </dependency>
       </dependencies>
    </dependencyManagement>
