@@ -23,8 +23,8 @@ import org.exoplatform.container.RootContainer;
 
 import java.security.PrivilegedAction;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 /**
  * This class is used to create and initialize all the portal containers that have been

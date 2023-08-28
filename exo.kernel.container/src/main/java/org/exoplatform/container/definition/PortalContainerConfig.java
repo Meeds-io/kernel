@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * This class is used to define the configuration related to the portal containers themselves. 

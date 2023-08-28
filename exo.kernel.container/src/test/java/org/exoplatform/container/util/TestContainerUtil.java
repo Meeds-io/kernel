@@ -29,7 +29,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * @author <a href="mailto:nicolas.filotto@exoplatform.com">Nicolas Filotto</a>

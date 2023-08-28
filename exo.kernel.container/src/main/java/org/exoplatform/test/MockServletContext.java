@@ -33,17 +33,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-import javax.servlet.ServletRegistration.Dynamic;
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.SessionTrackingMode;
-import javax.servlet.descriptor.JspConfigDescriptor;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.ServletRegistration.Dynamic;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.SessionTrackingMode;
+import jakarta.servlet.descriptor.JspConfigDescriptor;
 
 /**
  * Created by The eXo Platform SARL . Author : Mestrallet Benjamin
@@ -80,7 +80,7 @@ public class MockServletContext implements ServletContext
       this.contextPath_ = path;
       this.initParams_ = new HashMap<String, String>();
       this.attributes_ = new HashMap<String, Object>();
-      this.attributes_.put("javax.servlet.context.tempdir", path);
+      this.attributes_.put("jakarta.servlet.context.tempdir", path);
    }
 
    public void setName(String name)
@@ -264,17 +264,17 @@ public class MockServletContext implements ServletContext
       return 0;
    }
 
-   public javax.servlet.ServletRegistration.Dynamic addServlet(String servletName, String className)
+   public jakarta.servlet.ServletRegistration.Dynamic addServlet(String servletName, String className)
    {
       return null;
    }
 
-   public javax.servlet.ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet)
+   public jakarta.servlet.ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet)
    {
       return null;
    }
 
-   public javax.servlet.ServletRegistration.Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass)
+   public jakarta.servlet.ServletRegistration.Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass)
    {
       return null;
    }
@@ -294,17 +294,17 @@ public class MockServletContext implements ServletContext
       return null;
    }
 
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, String className)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, String className)
    {
       return null;
    }
 
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Filter filter)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, Filter filter)
    {
       return null;
    }
 
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass)
    {
       return null;
    }

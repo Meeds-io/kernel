@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * This class is used to define a {@link PortalContainer} and its dependencies. The dependencies

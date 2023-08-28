@@ -20,7 +20,7 @@ package org.exoplatform.container;
 
 import org.exoplatform.container.util.ContainerUtil;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * This class is used to define the initialization context of a web application

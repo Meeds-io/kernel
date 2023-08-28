@@ -27,8 +27,8 @@ import org.exoplatform.container.util.ContainerUtil;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 
 /**
  * Created by The eXo Platform SAS
@@ -44,7 +44,7 @@ public abstract class AbstractHttpSessionListener implements HttpSessionListener
    private static final Log LOG = ExoLogger.getLogger("exo.kernel.container.AbstractHttpSessionListener");
 
    /**
-    * @see javax.servlet.http.HttpSessionListener#sessionCreated(javax.servlet.http.HttpSessionEvent)
+    * @see jakarta.servlet.http.HttpSessionListener#sessionCreated(jakarta.servlet.http.HttpSessionEvent)
     */
    public final void sessionCreated(HttpSessionEvent event)
    {
@@ -116,7 +116,7 @@ public abstract class AbstractHttpSessionListener implements HttpSessionListener
    }
 
    /**
-    * @see javax.servlet.http.HttpSessionListener#sessionDestroyed(javax.servlet.http.HttpSessionEvent)
+    * @see jakarta.servlet.http.HttpSessionListener#sessionDestroyed(jakarta.servlet.http.HttpSessionEvent)
     */
    public final void sessionDestroyed(HttpSessionEvent event)
    {
