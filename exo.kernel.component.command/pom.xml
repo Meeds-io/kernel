@@ -50,8 +50,8 @@
          <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>commons-chain</groupId>
-         <artifactId>commons-chain</artifactId>
+         <groupId>io.github.weblegacy</groupId>
+         <artifactId>commons-chain-web-jakarta-servlet</artifactId>
          <exclusions>
             <exclusion>
                <groupId>xml-apis</groupId>
@@ -75,7 +75,7 @@
          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <configuration>
-              <argLine>${env.MAVEN_OPTS} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
+              <argLine>@{argLine} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
             </configuration>
             <executions>
                <execution>

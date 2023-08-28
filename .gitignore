@@ -43,3 +43,5 @@ target/
 
 # Misc
 *.swp
+*.log
+*.epoch

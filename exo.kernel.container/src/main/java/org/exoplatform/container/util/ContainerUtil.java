@@ -63,7 +63,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Scope;
 import javax.inject.Singleton;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 
 /**

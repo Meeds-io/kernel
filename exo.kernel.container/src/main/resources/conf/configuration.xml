@@ -29,4 +29,5 @@
    <component>
       <type>org.exoplatform.container.definition.PortalContainerConfig</type>
    </component>
+
 </configuration>
