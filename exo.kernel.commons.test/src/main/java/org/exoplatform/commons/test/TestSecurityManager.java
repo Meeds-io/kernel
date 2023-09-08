@@ -86,8 +86,8 @@ public class TestSecurityManager extends SecurityManager
                String className = traceElements[i].getClassName();
                String fileName = traceElements[i].getFileName();
                String methodName = traceElements[i].getMethodName();
-               if (i - 1 >= 0 && excludes.containsKey(className + "." + methodName)
-                  && excludes.get(className + "." + methodName).contains(traceElements[i - 1].getMethodName()))
+               if (className.contains("$MockitoMock$") || (i - 1 >= 0 && excludes.containsKey(className + "." + methodName)
+                  && excludes.get(className + "." + methodName).contains(traceElements[i - 1].getMethodName())))
                {
                   // the called method is excluded thus we ignore the exception
                   return;
@@ -95,12 +95,12 @@ public class TestSecurityManager extends SecurityManager
                if (className.startsWith("org.exoplatform"))
                {
                   // known tests classes
-                  if (fileName.startsWith("Test") || fileName.endsWith("Test.java")
+                  if (fileName != null && (fileName.startsWith("Test") || fileName.endsWith("Test.java")
                      || fileName.endsWith("TestBase.java") || fileName.endsWith("TestCase.java")
                      || fileName.equals("Probe.java") || fileName.equals("ExportBase.java")
                      || fileName.equals("AbstractTestContainer.java") || fileName.equals("ContainerBuilder.java")
                      || fileName.equals("WorkspaceStorageCacheBaseCase.java")
-                     || fileName.equals("ExoRepositoryStub.java") || fileName.equals("CloseableDataSource.java"))
+                     || fileName.equals("ExoRepositoryStub.java") || fileName.equals("CloseableDataSource.java")))
                   {
                      testCode = true;
                   }
