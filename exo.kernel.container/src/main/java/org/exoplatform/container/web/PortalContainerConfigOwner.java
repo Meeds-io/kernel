@@ -20,8 +20,8 @@ package org.exoplatform.container.web;
 
 import org.exoplatform.container.PortalContainer;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 /**
  * This class is used to indicated that this servlet context provides resources and/or configuration

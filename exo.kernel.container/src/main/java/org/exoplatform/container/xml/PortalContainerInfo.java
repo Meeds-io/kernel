@@ -20,7 +20,7 @@ package org.exoplatform.container.xml;
 
 import org.exoplatform.container.util.ContainerUtil;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * @author Benjamin Mestrallet benjamin.mestrallet@exoplatform.com

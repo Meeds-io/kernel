@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 /**
  * The context that represents the request scope.

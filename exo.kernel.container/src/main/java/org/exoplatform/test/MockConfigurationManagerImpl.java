@@ -26,7 +26,7 @@ import org.exoplatform.container.configuration.ConfigurationManagerImpl;
 import java.net.URL;
 import java.security.PrivilegedAction;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * Jul 19, 2004

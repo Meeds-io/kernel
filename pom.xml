@@ -44,9 +44,6 @@
       <org.exoplatform.gatein.wci.version>6.6.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
-      <spymemcached.version>2.12.3</spymemcached.version>
-      <spring-context.version>3.2.4.RELEASE</spring-context.version>
-      <org.apache.ws.commons.version>1.0.1</org.apache.ws.commons.version>
 
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
@@ -62,16 +59,11 @@
    <modules>
       <module>exo.kernel.container</module>
       <module>exo.kernel.container.mt</module>
-      <module>exo.kernel.container.ext.provider.impl.guice.v3</module>
-      <module>exo.kernel.container.ext.provider.impl.spring.v3</module>
-      <module>exo.kernel.container.ext.provider.impl.weld.v1</module>
-      <module>exo.kernel.container.ext.provider.impl.weld.v2</module>
       <module>exo.kernel.commons</module>
       <module>exo.kernel.commons.test</module>
       <module>exo.kernel.component.common</module>
       <module>exo.kernel.component.cache</module>
       <module>exo.kernel.component.ext.cache.impl.infinispan.v8</module>
-      <module>exo.kernel.component.ext.cache.impl.memcached.v1</module>
       <module>exo.kernel.component.command</module>
    </modules>
 
@@ -149,23 +141,6 @@
             <artifactId>subethasmtp</artifactId>
             <version>${subethasmtp.version}</version>
             <scope>test</scope>
-         </dependency>
-
-         <!-- Third party dependencies used by deprecated services  -->
-         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring-context.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>net.spy</groupId>
-            <artifactId>spymemcached</artifactId>
-            <version>${spymemcached.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.apache.ws.commons</groupId>
-            <artifactId>ws-commons-util</artifactId>
-            <version>${org.apache.ws.commons.version}</version>
          </dependency>
       </dependencies>
    </dependencyManagement>

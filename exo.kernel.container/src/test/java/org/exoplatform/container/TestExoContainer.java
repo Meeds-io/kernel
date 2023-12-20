@@ -84,8 +84,8 @@ import javax.inject.Provider;
 import javax.inject.Qualifier;
 import javax.inject.Scope;
 import javax.inject.Singleton;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Created by The eXo Platform SAS

@@ -21,7 +21,6 @@ package org.exoplatform.container;
 import org.exoplatform.container.util.Utils;
 
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -31,18 +30,19 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-import javax.servlet.ServletRegistration.Dynamic;
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.SessionTrackingMode;
-import javax.servlet.descriptor.JspConfigDescriptor;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.ServletRegistration.Dynamic;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.SessionTrackingMode;
+import jakarta.servlet.descriptor.JspConfigDescriptor;
 
 /**
  * This class is used to merge all the {@link ServletContext} related to a given portal container.
@@ -65,7 +65,7 @@ class PortalContainerContext implements ServletContext {
    /**
     * The weak reference to the related portal container
     */
-   private volatile WeakReference<PortalContainer> containerRef;
+   private AtomicReference<PortalContainer> containerRef;
 
    /**
     * The name of the related portal container used in case of developing mode
@@ -76,7 +76,7 @@ class PortalContainerContext implements ServletContext {
    {
       // In case of developing mode we want to avoid to use hard reference in case 
       // we would like to reload the container
-      this.containerRef = new WeakReference<PortalContainer>(container);
+      this.containerRef = new AtomicReference<>(container);
       this.portalContainerName = container.getName();
    }
 
@@ -84,7 +84,7 @@ class PortalContainerContext implements ServletContext {
    {
       final Set<WebAppInitContext> contexts = getPortalContainer().getWebAppInitContexts();
       final WebAppInitContext[] aContexts = new WebAppInitContext[contexts.size()];
-      return (WebAppInitContext[])contexts.toArray(aContexts);
+      return contexts.toArray(aContexts);
    }
    
    private PortalContainer getPortalContainer()
@@ -95,7 +95,7 @@ class PortalContainerContext implements ServletContext {
          return container;
       }
       container = RootContainer.getInstance().getPortalContainer(portalContainerName);
-      containerRef = new WeakReference<PortalContainer>(container);
+      containerRef = new AtomicReference<>(container);
       return container;
    }
    
@@ -160,7 +160,7 @@ class PortalContainerContext implements ServletContext {
          {
             if (names == null)
             {
-               names = new HashSet<String>();
+               names = new HashSet<>();
             }
             names.addAll(Collections.list(eNames));
          }
@@ -302,7 +302,7 @@ class PortalContainerContext implements ServletContext {
          {
             if (paths == null)
             {
-               paths = new LinkedHashSet<String>();
+               paths = new LinkedHashSet<>();
             }
             paths.addAll(sPaths);
          }
@@ -321,15 +321,6 @@ class PortalContainerContext implements ServletContext {
    /**
     * {@inheritDoc}
     */
-   @SuppressWarnings("deprecation")
-   public Servlet getServlet(String name) throws ServletException
-   {
-      return getPortalContext().getServlet(name);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
    public String getServletContextName()
    {
       return getPortalContext().getServletContextName();
@@ -338,36 +329,9 @@ class PortalContainerContext implements ServletContext {
    /**
     * {@inheritDoc}
     */
-   @SuppressWarnings("deprecation")
-   public Enumeration<String> getServletNames()
-   {
-      return getPortalContext().getServletNames();
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   @SuppressWarnings("deprecation")
-   public Enumeration<Servlet> getServlets()
-   {
-      return getPortalContext().getServlets();
-   }
-
-   /**
-    * {@inheritDoc}
-    */
    public void log(String message)
    {
       getPortalContext().log(message);
-   }
-
-   /**
-    * {@inheritDoc}
-    */
-   @SuppressWarnings("deprecation")
-   public void log(Exception exception, String message)
-   {
-      getPortalContext().log(exception, message);
    }
 
    /**
@@ -479,7 +443,7 @@ class PortalContainerContext implements ServletContext {
    /**
     * {@inheritDoc}
     */
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, String className)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, String className)
    {
       return getPortalContext().addFilter(filterName, className);
    }
@@ -487,7 +451,7 @@ class PortalContainerContext implements ServletContext {
    /**
     * {@inheritDoc}
     */
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Filter filter)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, Filter filter)
    {
       return getPortalContext().addFilter(filterName, filter);
    }
@@ -495,7 +459,7 @@ class PortalContainerContext implements ServletContext {
    /**
     * {@inheritDoc}
     */
-   public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass)
+   public jakarta.servlet.FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass)
    {
       return getPortalContext().addFilter(filterName, filterClass);
    }

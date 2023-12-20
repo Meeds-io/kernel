@@ -22,6 +22,7 @@ import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.PropertyConfigurator;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.util.ContainerUtil;
+import org.exoplatform.container.xml.Deserializer;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.PropertiesParam;
 import org.exoplatform.container.xml.Property;
@@ -136,7 +137,7 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
         for (Iterator<Property> i = propertiesParam.getPropertyIterator(); i.hasNext(); ) {
           Property property = i.next();
           String name = property.getName();
-          String value = property.getValue();
+          String value = Deserializer.resolveString(property.getValue());
           LOG.debug("Adding property from init param " + name + " = " + value);
           PropertyManager.setProperty(name, value);
         }
