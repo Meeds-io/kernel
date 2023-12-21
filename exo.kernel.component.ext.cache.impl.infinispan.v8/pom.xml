@@ -88,10 +88,6 @@
 			<groupId>org.exoplatform.kernel</groupId>
 			<artifactId>exo.kernel.container</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
     </dependencies>
 	<build>
 		<plugins>
