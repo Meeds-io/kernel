@@ -212,6 +212,15 @@ public class ConcurrentContainer extends AbstractInterceptor
       return found;
    }
 
+   @Override
+   public <T> void registerComponentAdapter(ComponentAdapter<T> componentAdapter) {
+     Object componentKey = componentAdapter.getComponentKey();
+     if (componentKeyToAdapterCache.putIfAbsent(componentKey, componentAdapter) != null) {
+       throw new ContainerException("Key " + componentKey + " duplicated");
+     }
+     componentAdapters.add(componentAdapter);
+   }
+
    /**
     * Register a component via a ComponentAdapter. Use this if you need fine grained control over what
     * ComponentAdapter to use for a specific component.
