@@ -181,6 +181,11 @@ public abstract class AbstractContainer implements Container
       return delegate.unregisterComponent(componentKey);
    }
 
+   @Override
+   public <T> void registerComponentAdapter(ComponentAdapter<T> componentAdapter) {
+     delegate.registerComponentAdapter(componentAdapter);
+   }
+
    /**
     * {@inheritDoc}
     */
