@@ -18,7 +18,7 @@
  */
 package org.exoplatform.services.cache.impl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.container.xml.InitParams;

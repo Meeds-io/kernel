@@ -75,6 +75,10 @@ public class CloseableDataSource implements DataSource
       this.ds = ds;
    }
 
+   public DataSource getDataSource() {
+    return ds;
+   }
+
    /**
     * {@inheritDoc}
     */
