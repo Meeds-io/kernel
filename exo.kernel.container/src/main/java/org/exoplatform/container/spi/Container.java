@@ -180,6 +180,13 @@ public interface Container extends Startable, Disposable, Serializable
    ComponentAdapter<?> unregisterComponent(Object componentKey);
 
    /**
+    * Register a component adapter.
+    * 
+    * @param componentAdapter ComponentAdapter to register.
+    */
+   <T> void registerComponentAdapter(ComponentAdapter<T> componentAdapter);
+
+   /**
     * Gives the corresponding {@link ManagementContext}
     */
    ManagementContext getManagementContext();

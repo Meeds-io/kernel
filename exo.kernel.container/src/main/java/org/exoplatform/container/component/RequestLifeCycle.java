@@ -19,6 +19,7 @@
 package org.exoplatform.container.component;
 
 import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -166,6 +167,29 @@ public class RequestLifeCycle
          current.set(null);
       }
       return result;
+   }
+
+   protected void restartTransaction() {
+     restartTransaction(ExoContainerContext.getCurrentContainer());
+   }
+
+   protected void restartTransaction(ExoContainer container) {
+     int i = 0;
+     // Close transactions until no encapsulated transaction
+     boolean success = true;
+     do {
+       try {
+         end();
+         i++;
+       } catch (IllegalStateException e) {
+         success = false;
+       }
+     } while (success);
+
+     // Restart transactions with the same number of encapsulations
+     for (int j = 0; j < i; j++) {
+       begin(container);
+     }
    }
 
    /**
