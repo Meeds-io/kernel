@@ -18,15 +18,12 @@
  */
 package org.exoplatform.management.jmx.impl;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.management.jmx.annotations.NameTemplate;
 import org.exoplatform.management.spi.ManagedResource;
 import org.exoplatform.management.spi.ManagementProvider;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,32 +181,19 @@ public class JMXManagementProvider implements ManagementProvider
             }
             try
             {
-               SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-               {
-                  public Void run() throws Exception
-                  {
-                     server.unregisterMBean(name);
-                     return null;
-                  }
-               });
+               server.unregisterMBean(name);
             }
-            catch (PrivilegedActionException e)
+            catch (Exception e)
             {
                throw new RuntimeException("Failed to unregister MBean '" + name + " due to " + e.getMessage(), e);
             }
          }
          try
          {
-            SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-            {
-               public Void run() throws Exception
-               {
-                  server.registerMBean(mbean, name);
-                  return null;
-               }
-            });
+            server.registerMBean(mbean, name);
+
          }
-         catch (PrivilegedActionException e)
+         catch (Exception e)
          {
             throw new RuntimeException("Failed to register MBean '" + name + " due to " + e.getMessage(), e);
          }
@@ -221,39 +205,9 @@ public class JMXManagementProvider implements ManagementProvider
       final ObjectName name = (ObjectName)key;
       try
       {
-         try
+         if (server.isRegistered(name))
          {
-            SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-            {
-               public Void run() throws Exception
-               {
-                  if (server.isRegistered(name))
-                  {
-                     server.unregisterMBean(name);                     
-                  }
-                  return null;
-               }
-            });
-         }
-         catch (PrivilegedActionException pae)
-         {
-            Throwable cause = pae.getCause();
-            if (cause instanceof InstanceNotFoundException)
-            {
-               throw (InstanceNotFoundException)cause;
-            }
-            else if (cause instanceof MBeanRegistrationException)
-            {
-               throw (MBeanRegistrationException)cause;
-            }
-            else if (cause instanceof RuntimeException)
-            {
-               throw (RuntimeException)cause;
-            }
-            else
-            {
-               throw new RuntimeException(cause);
-            }
+            server.unregisterMBean(name);
          }
       }
       catch (InstanceNotFoundException e)

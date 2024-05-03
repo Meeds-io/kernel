@@ -18,14 +18,12 @@
  */
 package org.exoplatform.services.idgenerator.impl;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.idgenerator.IDGeneratorService;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.security.PrivilegedAction;
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -47,23 +45,16 @@ public class IDGeneratorServiceImpl implements IDGeneratorService
 
    static
    {
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Object>()
+      if ("IBM Corporation".equals(System.getProperty("java.vendor"))
+         && "1.8.0".equals(System.getProperty("java.version")))
       {
-         public Object run()
-         {
-            if ("IBM Corporation".equals(System.getProperty("java.vendor"))
-               && "1.8.0".equals(System.getProperty("java.version")))
-            {
-               //IBM JDK 8 workaround KER-308
-               integerFormatter = new J9IntegerFormatter();
-            }
-            else
-            {
-               integerFormatter = new IntegerFormatter();
-            }
-            return null;
-         }
-      });
+         //IBM JDK 8 workaround KER-308
+         integerFormatter = new J9IntegerFormatter();
+      }
+      else
+      {
+         integerFormatter = new IntegerFormatter();
+      }
       InetAddress localInetAddress = null;
       try
       {

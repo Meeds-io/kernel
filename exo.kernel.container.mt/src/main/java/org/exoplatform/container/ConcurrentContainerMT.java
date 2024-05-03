@@ -19,7 +19,6 @@
 package org.exoplatform.container;
 
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.management.ManageableComponentAdapterFactoryMT;
 import org.exoplatform.container.spi.ComponentAdapter;
 import org.exoplatform.container.spi.ComponentAdapterFactory;
@@ -38,7 +37,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -249,31 +247,24 @@ public class ConcurrentContainerMT extends ConcurrentContainer implements TopExo
             {
                public void run()
                {
-                  SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+                  ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
+                  ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
+                  try
                   {
-                     public Void run()
-                     {
-                        ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
-                        ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
-                        try
-                        {
-                           ExoContainerContext.setCurrentContainer(container);
-                           Thread.currentThread().setContextClassLoader(cl);
-                           Object o = getInstance(adapter, componentType, false);
-                           if (o != null)
-                              adapterToInstanceMap.put(adapter, o);
-                           // This is to ensure all are added. (Indirect dependencies will be added
-                           // from InstantiatingComponentAdapter).
-                           addOrderedComponentAdapter(adapter);
-                        }
-                        finally
-                        {
-                           Thread.currentThread().setContextClassLoader(oldCl);
-                           ExoContainerContext.setCurrentContainer(oldContainer);
-                        }
-                        return null;
-                     }
-                  });
+                     ExoContainerContext.setCurrentContainer(container);
+                     Thread.currentThread().setContextClassLoader(cl);
+                     Object o = getInstance(adapter, componentType, false);
+                     if (o != null)
+                        adapterToInstanceMap.put(adapter, o);
+                     // This is to ensure all are added. (Indirect dependencies will be added
+                     // from InstantiatingComponentAdapter).
+                     addOrderedComponentAdapter(adapter);
+                  }
+                  finally
+                  {
+                     Thread.currentThread().setContextClassLoader(oldCl);
+                     ExoContainerContext.setCurrentContainer(oldContainer);
+                  }
                }
             };
             if (submittedTasks == null)
@@ -406,71 +397,64 @@ public class ConcurrentContainerMT extends ConcurrentContainer implements TopExo
             {
                public void run()
                {
-                  SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+                  if (error.get() != null)
                   {
-                     public Void run()
+                     return;
+                  }
+                  else if (alreadyStarted.containsKey(adapter)
+                      || (skippable && startInProgress.contains(adapter)))
+                  {
+                     // The component has already been started or is in progress
+                     return;
+                  }
+                  ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
+                  ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
+                  try
+                  {
+                     ExoContainerContext.setCurrentContainer(container);
+                     Thread.currentThread().setContextClassLoader(cl);
+                     if (adapter instanceof ComponentAdapterDependenciesAware)
                      {
-                        if (error.get() != null)
+                        ComponentAdapterDependenciesAware<?> cada = (ComponentAdapterDependenciesAware<?>)adapter;
+                        startDependencies(alreadyStarted, startInProgress, error, cada);
+                     }
+                     if (!Startable.class.isAssignableFrom(adapter.getComponentImplementation()))
+                     {
+                        alreadyStarted.put(adapter, adapter);
+                        return;
+                     }
+                     else if (alreadyStarted.containsKey(adapter))
+                     {
+                        // The component has already been started
+                        return;
+                     }
+                     synchronized (adapter)
+                     {
+                        if (alreadyStarted.containsKey(adapter))
                         {
-                           return null;
+                           // The component has already been started
+                           return;
                         }
-                        else if (alreadyStarted.containsKey(adapter)
-                           || (skippable && startInProgress.contains(adapter)))
-                        {
-                           // The component has already been started or is in progress
-                           return null;
-                        }
-                        ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
-                        ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
                         try
                         {
-                           ExoContainerContext.setCurrentContainer(container);
-                           Thread.currentThread().setContextClassLoader(cl);
-                           if (adapter instanceof ComponentAdapterDependenciesAware)
-                           {
-                              ComponentAdapterDependenciesAware<?> cada = (ComponentAdapterDependenciesAware<?>)adapter;
-                              startDependencies(alreadyStarted, startInProgress, error, cada);
-                           }
-                           if (!Startable.class.isAssignableFrom(adapter.getComponentImplementation()))
-                           {
-                              alreadyStarted.put(adapter, adapter);
-                              return null;
-                           }
-                           else if (alreadyStarted.containsKey(adapter))
-                           {
-                              // The component has already been started
-                              return null;
-                           }
-                           synchronized (adapter)
-                           {
-                              if (alreadyStarted.containsKey(adapter))
-                              {
-                                 // The component has already been started
-                                 return null;
-                              }
-                              try
-                              {
-                                 Startable startable = (Startable)adapter.getComponentInstance();
-                                 startable.start();
-                              }
-                              finally
-                              {
-                                 alreadyStarted.put(adapter, adapter);
-                              }
-                           }
-                        }
-                        catch (Exception e)
-                        {
-                           error.compareAndSet(null, e);
+                           Startable startable = (Startable)adapter.getComponentInstance();
+                           startable.start();
                         }
                         finally
                         {
-                           Thread.currentThread().setContextClassLoader(oldCl);
-                           ExoContainerContext.setCurrentContainer(oldContainer);
+                           alreadyStarted.put(adapter, adapter);
                         }
-                        return null;
                      }
-                  });
+                  }
+                  catch (Exception e)
+                  {
+                     error.compareAndSet(null, e);
+                  }
+                  finally
+                  {
+                     Thread.currentThread().setContextClassLoader(oldCl);
+                     ExoContainerContext.setCurrentContainer(oldContainer);
+                  }
                }
             };
             if (submittedTasks == null)
@@ -1009,28 +993,22 @@ public class ConcurrentContainerMT extends ConcurrentContainer implements TopExo
             {
                public void run()
                {
-                  SecurityHelper.doPrivilegedAction(new PrivilegedAction<Object>()
+                  ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
+                  ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
+                  ComponentTaskContext previousCtx = currentCtx.get();
+                  try
                   {
-                     public Object run()
-                     {
-                        ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
-                        ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
-                        ComponentTaskContext previousCtx = currentCtx.get();
-                        try
-                        {
-                           ExoContainerContext.setCurrentContainer(container);
-                           Thread.currentThread().setContextClassLoader(cl);
-                           currentCtx.set(ctx.addToContext(dependency.getKey(), type));
-                           return dependency.load(holder);
-                        }
-                        finally
-                        {
-                           Thread.currentThread().setContextClassLoader(oldCl);
-                           ExoContainerContext.setCurrentContainer(oldContainer);
-                           currentCtx.set(previousCtx);
-                        }
-                     }
-                  });
+                     ExoContainerContext.setCurrentContainer(container);
+                     Thread.currentThread().setContextClassLoader(cl);
+                     currentCtx.set(ctx.addToContext(dependency.getKey(), type));
+                     dependency.load(holder);
+                  }
+                  finally
+                  {
+                     Thread.currentThread().setContextClassLoader(oldCl);
+                     ExoContainerContext.setCurrentContainer(oldContainer);
+                     currentCtx.set(previousCtx);
+                  }
                }
             };
             if (submittedTasks == null)
@@ -1232,8 +1210,7 @@ public class ConcurrentContainerMT extends ConcurrentContainer implements TopExo
 
       KernelThreadFactory()
       {
-         SecurityManager s = System.getSecurityManager();
-         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+         group = Thread.currentThread().getThreadGroup();
          namePrefix = "kernel-thread-";
       }
 

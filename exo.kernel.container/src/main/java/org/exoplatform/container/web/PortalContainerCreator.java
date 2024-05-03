@@ -18,10 +18,7 @@
  */
 package org.exoplatform.container.web;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.RootContainer;
-
-import java.security.PrivilegedAction;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -43,16 +40,7 @@ public class PortalContainerCreator implements ServletContextListener
     */
    public void contextDestroyed(ServletContextEvent event)
    {
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            // Ensure that the root container is stopped properly since the shutdown hook
-            // doesn't work in some cases for example with tomcat when we call the stop command
-            RootContainer.getInstance().stop();
-            return null;
-         }
-      });
+      RootContainer.getInstance().stop();
    }
 
    /**
@@ -61,13 +49,6 @@ public class PortalContainerCreator implements ServletContextListener
    public void contextInitialized(ServletContextEvent event)
    {
       final RootContainer rootContainer = RootContainer.getInstance();
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            rootContainer.createPortalContainers();
-            return null;
-         }
-      });
+      rootContainer.createPortalContainers();
    }
 }

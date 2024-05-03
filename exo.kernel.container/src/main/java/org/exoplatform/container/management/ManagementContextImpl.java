@@ -18,7 +18,6 @@
  */
 package org.exoplatform.container.management;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.RootContainer;
@@ -35,7 +34,6 @@ import org.exoplatform.services.log.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -357,19 +355,12 @@ public class ManagementContextImpl implements ManagementContext, ManagedResource
       final ManageableContainer container = findContainer();
       if (container != null && container.getHolder() != null)
       {
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+         ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
+         if (!(oldContainer instanceof RootContainer))
          {
-            public Void run()
-            {
-               ExoContainer oldContainer = ExoContainerContext.getCurrentContainerIfPresent();
-               if (!(oldContainer instanceof RootContainer))
-               {
-                  previousContainer.set(oldContainer);
-               }
-               ExoContainerContext.setCurrentContainer(container.getHolder());
-               return null;
-            }
-         });
+            previousContainer.set(oldContainer);
+         }
+         ExoContainerContext.setCurrentContainer(container.getHolder());
          RequestLifeCycle.begin(container.getHolder());
       }
    }
@@ -382,19 +373,12 @@ public class ManagementContextImpl implements ManagementContext, ManagedResource
       }
       finally
       {
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+         ExoContainer oldContainer = previousContainer.get();
+         if (oldContainer != null)
          {
-            public Void run()
-            {
-               ExoContainer oldContainer = previousContainer.get();
-               if (oldContainer != null)
-               {
-                  previousContainer.set(null);
-               }
-               ExoContainerContext.setCurrentContainer(oldContainer);
-               return null;
-            }
-         });
+            previousContainer.set(null);
+         }
+         ExoContainerContext.setCurrentContainer(oldContainer);
       }
    }
 

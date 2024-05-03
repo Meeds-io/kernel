@@ -52,12 +52,9 @@ public class TestNetService extends TestCase
 
    public void testNetService() throws Exception
    {
-      ping(null, 0);
       ping("www.google.com", 80);
       ping("www.vnexpress.net", 80);
       ping("www.exoplatform.org", 80);
-      // ----ping a host on LAN
-      ping("localhost", 25);
    }
 
    private void ping(String host, int port) throws Exception

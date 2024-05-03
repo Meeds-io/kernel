@@ -19,7 +19,6 @@
 package org.exoplatform.container.configuration;
 
 import org.exoplatform.commons.utils.IOUtil;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -27,7 +26,6 @@ import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,13 +67,7 @@ class EntityResolverImpl implements EntityResolver
             final String path = systemIdToResourcePath.get(systemId);
             if (path != null)
             {
-               InputStream in = SecurityHelper.doPrivilegedAction(new PrivilegedAction<InputStream>()
-               {
-                  public InputStream run()
-                  {
-                     return loader.getResourceAsStream(path);
-                  }
-               });
+               InputStream in = loader.getResourceAsStream(path);
 
                if (in != null)
                {

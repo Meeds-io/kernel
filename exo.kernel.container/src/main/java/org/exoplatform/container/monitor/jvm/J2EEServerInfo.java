@@ -19,7 +19,6 @@
 package org.exoplatform.container.monitor.jvm;
 
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ar.Archive;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -29,7 +28,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.PrivilegedAction;
 import java.util.*;
 
 import javax.management.MBeanServer;
@@ -83,200 +81,192 @@ public class J2EEServerInfo
 
    public J2EEServerInfo(final boolean logEnabled)
    {
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      String jonasHome = System.getProperty("jonas.base");
+      String jbossHome = System.getProperty("jboss.home.dir");
+      String jettyHome = System.getProperty("jetty.home");
+      String websphereHome = System.getProperty("was.install.root");
+      String weblogicHome = System.getProperty("wls.home");
+      String glassfishHome = System.getProperty("com.sun.aas.instanceRoot");
+      String catalinaHome = System.getProperty("catalina.home");
+      String testHome = System.getProperty("maven.exoplatform.dir");
+
+      // The name of the configuration directory
+      final String confDirName = System.getProperty(EXO_CONF_DIR_NAME_PARAM, "exo-conf");
+      if (jonasHome != null)
       {
-         public Void run()
+         serverName_ = "jonas";
+         serverHome_ = jonasHome;
+      }
+      else if (jbossHome != null)
+      {
+         serverName_ = "jboss";
+         serverHome_ = jbossHome;
+
+         // try find and use jboss.server.config.url
+         // based on http://www.jboss.org/community/docs/DOC-10730
+         String jbossConfigUrl = System.getProperty("jboss.server.config.url");
+         if (jbossConfigUrl != null)
          {
-
-            String jonasHome = System.getProperty("jonas.base");
-            String jbossHome = System.getProperty("jboss.home.dir");
-            String jettyHome = System.getProperty("jetty.home");
-            String websphereHome = System.getProperty("was.install.root");
-            String weblogicHome = System.getProperty("wls.home");
-            String glassfishHome = System.getProperty("com.sun.aas.instanceRoot");
-            String catalinaHome = System.getProperty("catalina.home");
-            String testHome = System.getProperty("maven.exoplatform.dir");
-
-            // The name of the configuration directory
-            final String confDirName = System.getProperty(EXO_CONF_DIR_NAME_PARAM, "exo-conf");
-            if (jonasHome != null)
+            try
             {
-               serverName_ = "jonas";
-               serverHome_ = jonasHome;
+               exoConfDir_ = new File(new File(new URI(jbossConfigUrl)), confDirName).getAbsolutePath();
+               appDeployDirectories_ = Collections.singletonList(new File(new File(new URI(jbossConfigUrl)).getParentFile(), "deploy").getAbsolutePath());
             }
-            else if (jbossHome != null)
+            catch (SecurityException e)
             {
-               serverName_ = "jboss";
-               serverHome_ = jbossHome;
-
-               // try find and use jboss.server.config.url
-               // based on http://www.jboss.org/community/docs/DOC-10730
-               String jbossConfigUrl = System.getProperty("jboss.server.config.url");
-               if (jbossConfigUrl != null)
+               if (logEnabled && LOG.isTraceEnabled())
                {
-                  try
-                  {
-                     exoConfDir_ = new File(new File(new URI(jbossConfigUrl)), confDirName).getAbsolutePath();
-                     appDeployDirectories_ = Collections.singletonList(new File(new File(new URI(jbossConfigUrl)).getParentFile(), "deploy").getAbsolutePath());
-                  }
-                  catch (SecurityException e)
-                  {
-                     if (logEnabled && LOG.isTraceEnabled())
-                     {
-                        LOG.trace("An exception occurred: " + e.getMessage());
-                     }
-                  }
-                  catch (URISyntaxException e)
-                  {
-                     if (logEnabled && LOG.isTraceEnabled())
-                     {
-                        LOG.trace("An exception occurred: " + e.getMessage());
-                     }
-                  }
-                  catch (IllegalArgumentException e)
-                  {
-                     if (logEnabled && LOG.isTraceEnabled())
-                     {
-                        LOG.trace("An exception occurred: " + e.getMessage());
-                     }
-                  }
+                  LOG.trace("An exception occurred: " + e.getMessage());
                }
-               else
+            }
+            catch (URISyntaxException e)
+            {
+               if (logEnabled && LOG.isTraceEnabled())
                {
-                  // New variable that exists only since JBoss AS 7
-                  String jbossConfigDir = System.getProperty("jboss.server.config.dir");
-                  if (jbossConfigDir != null)
-                  {
-                     try
-                     {
-                        exoConfDir_ = new File(jbossConfigDir, confDirName).getAbsolutePath();
-                        appDeployDirectories_ = Collections.singletonList(new File(new File(jbossConfigDir).getParentFile(), "deployments").getAbsolutePath());
-                     }
-                     catch (SecurityException e)
-                     {
-                        if (logEnabled && LOG.isTraceEnabled())
-                        {
-                           LOG.trace("An exception occurred: " + e.getMessage());
-                        }
-                     }
-                  }
+                  LOG.trace("An exception occurred: " + e.getMessage());
                }
+            }
+            catch (IllegalArgumentException e)
+            {
+               if (logEnabled && LOG.isTraceEnabled())
+               {
+                  LOG.trace("An exception occurred: " + e.getMessage());
+               }
+            }
+         }
+         else
+         {
+            // New variable that exists only since JBoss AS 7
+            String jbossConfigDir = System.getProperty("jboss.server.config.dir");
+            if (jbossConfigDir != null)
+            {
                try
                {
-                  Class<?> clazz = Thread.currentThread().getContextClassLoader()
-                           .loadClass("org.jboss.mx.util.MBeanServerLocator");
-                  Method m = clazz.getMethod("locateJBoss");
-                  mbeanServer = (MBeanServer)m.invoke(null);
+                  exoConfDir_ = new File(jbossConfigDir, confDirName).getAbsolutePath();
+                  appDeployDirectories_ = Collections.singletonList(new File(new File(jbossConfigDir).getParentFile(), "deployments").getAbsolutePath());
                }
-               catch (ClassNotFoundException ignore)
+               catch (SecurityException e)
                {
-                  // We assume that JBoss AS 7 or higher is currently used
-                  // since this class has been removed starting from this version
-                  // of JBoss AS
-                  if (logEnabled && LOG.isDebugEnabled())
-                     LOG.debug(ignore.getLocalizedMessage(), ignore);
-               }
-               catch (Exception ignore)
-               {
-                  if (logEnabled && LOG.isErrorEnabled())
-                     LOG.error(ignore.getLocalizedMessage(), ignore);
-               }
-            }
-            else if (jettyHome != null)
-            {
-               serverName_ = "jetty";
-               serverHome_ = jettyHome;
-               appDeployDirectories_ = Collections.singletonList(new File(jettyHome, "webapps").getAbsolutePath());
-               appDeployArchives_ = Collections.singleton(Archive.WAR);
-            }
-            else if (websphereHome != null)
-            {
-               serverName_ = "websphere";
-               serverHome_ = websphereHome;
-            }
-            else if (weblogicHome != null)
-            {
-               serverName_ = "weblogic";
-               serverHome_ = weblogicHome;
-            }
-            else if (glassfishHome != null)
-            {
-               serverName_ = "glassfish";
-               serverHome_ = glassfishHome;
-            }
-            else if (catalinaHome != null)
-            {
-               // Catalina has to be processed at the end as other servers may embed it
-               serverName_ = "tomcat";
-               serverHome_ = catalinaHome;
-               appDeployDirectories_ = Collections.singletonList(new File(catalinaHome, "webapps").getAbsolutePath());
-               appDeployArchives_ = Collections.singleton(new Archive("war", PropertyManager.isDevelopping(), false, null));
-            }
-            else if (testHome != null)
-            {
-               serverName_ = "test";
-               serverHome_ = testHome;
-            }
-            else
-            {
-               // throw new UnsupportedOperationException("unknown server platform") ;
-               serverName_ = "standalone";
-               serverHome_ = System.getProperty("user.dir");
-            }
-            if (exoConfDir_ == null)
-            {
-               exoConfDir_ = serverHome_ + "/" + confDirName;
-            }
-            if (mbeanServer == null)
-            {
-               mbeanServer = ManagementFactory.getPlatformMBeanServer();
-            }
-
-            String exoConfHome = System.getProperty(EXO_CONF_PARAM);
-            if (exoConfHome != null && exoConfHome.length() > 0)
-            {
-               if (logEnabled && LOG.isInfoEnabled())
-                  LOG.info("Override exo-conf directory '" + exoConfDir_ + "' with location '" + exoConfHome + "'");
-               exoConfDir_ = exoConfHome;
-            }
-
-            String archiveDirs = System.getProperty(EXO_ARCHIVE_DIRS_PARAM);
-            if (archiveDirs != null)
-            {
-               StringTokenizer st = new StringTokenizer(archiveDirs, ",");
-               if (st.hasMoreTokens())
-               {
-                  if (logEnabled && LOG.isInfoEnabled())
-                     LOG.info("The location of the archives has been set to '" + archiveDirs + "'");
-                  List<String> dirs = new ArrayList<String>();
-                  while (st.hasMoreTokens())
-                  { 
-                     String dir = st.nextToken().trim().replace('\\', '/');
-                     String path = new File(serverHome_, dir).getAbsolutePath();
-                     if (logEnabled && LOG.isDebugEnabled())
-                     {
-                        LOG.debug("Location of the archives: {}", path);
-                     }
-                     dirs.add(path);
+                  if (logEnabled && LOG.isTraceEnabled())
+                  {
+                     LOG.trace("An exception occurred: " + e.getMessage());
                   }
-                  appDeployDirectories_ = dirs;
-               }
-               else
-               {
-                  appDeployDirectories_ = null;
                }
             }
-
-            if (appDeployDirectories_ == null)
-            {
-               if (logEnabled && LOG.isInfoEnabled())
-                  LOG.info("No location of the archives has been set");
-            }
-            serverHome_ = serverHome_.replace('\\', '/');
-            exoConfDir_ = exoConfDir_.replace('\\', '/');
-            return null;
          }
-      });
+         try
+         {
+            Class<?> clazz = Thread.currentThread().getContextClassLoader()
+                                   .loadClass("org.jboss.mx.util.MBeanServerLocator");
+            Method m = clazz.getMethod("locateJBoss");
+            mbeanServer = (MBeanServer)m.invoke(null);
+         }
+         catch (ClassNotFoundException ignore)
+         {
+            // We assume that JBoss AS 7 or higher is currently used
+            // since this class has been removed starting from this version
+            // of JBoss AS
+            if (logEnabled && LOG.isDebugEnabled())
+               LOG.debug(ignore.getLocalizedMessage(), ignore);
+         }
+         catch (Exception ignore)
+         {
+            if (logEnabled && LOG.isErrorEnabled())
+               LOG.error(ignore.getLocalizedMessage(), ignore);
+         }
+      }
+      else if (jettyHome != null)
+      {
+         serverName_ = "jetty";
+         serverHome_ = jettyHome;
+         appDeployDirectories_ = Collections.singletonList(new File(jettyHome, "webapps").getAbsolutePath());
+         appDeployArchives_ = Collections.singleton(Archive.WAR);
+      }
+      else if (websphereHome != null)
+      {
+         serverName_ = "websphere";
+         serverHome_ = websphereHome;
+      }
+      else if (weblogicHome != null)
+      {
+         serverName_ = "weblogic";
+         serverHome_ = weblogicHome;
+      }
+      else if (glassfishHome != null)
+      {
+         serverName_ = "glassfish";
+         serverHome_ = glassfishHome;
+      }
+      else if (catalinaHome != null)
+      {
+         // Catalina has to be processed at the end as other servers may embed it
+         serverName_ = "tomcat";
+         serverHome_ = catalinaHome;
+         appDeployDirectories_ = Collections.singletonList(new File(catalinaHome, "webapps").getAbsolutePath());
+         appDeployArchives_ = Collections.singleton(new Archive("war", PropertyManager.isDevelopping(), false, null));
+      }
+      else if (testHome != null)
+      {
+         serverName_ = "test";
+         serverHome_ = testHome;
+      }
+      else
+      {
+         // throw new UnsupportedOperationException("unknown server platform") ;
+         serverName_ = "standalone";
+         serverHome_ = System.getProperty("user.dir");
+      }
+      if (exoConfDir_ == null)
+      {
+         exoConfDir_ = serverHome_ + "/" + confDirName;
+      }
+      if (mbeanServer == null)
+      {
+         mbeanServer = ManagementFactory.getPlatformMBeanServer();
+      }
+
+      String exoConfHome = System.getProperty(EXO_CONF_PARAM);
+      if (exoConfHome != null && exoConfHome.length() > 0)
+      {
+         if (logEnabled && LOG.isInfoEnabled())
+            LOG.info("Override exo-conf directory '" + exoConfDir_ + "' with location '" + exoConfHome + "'");
+         exoConfDir_ = exoConfHome;
+      }
+
+      String archiveDirs = System.getProperty(EXO_ARCHIVE_DIRS_PARAM);
+      if (archiveDirs != null)
+      {
+         StringTokenizer st = new StringTokenizer(archiveDirs, ",");
+         if (st.hasMoreTokens())
+         {
+            if (logEnabled && LOG.isInfoEnabled())
+               LOG.info("The location of the archives has been set to '" + archiveDirs + "'");
+            List<String> dirs = new ArrayList<String>();
+            while (st.hasMoreTokens())
+            {
+               String dir = st.nextToken().trim().replace('\\', '/');
+               String path = new File(serverHome_, dir).getAbsolutePath();
+               if (logEnabled && LOG.isDebugEnabled())
+               {
+                  LOG.debug("Location of the archives: {}", path);
+               }
+               dirs.add(path);
+            }
+            appDeployDirectories_ = dirs;
+         }
+         else
+         {
+            appDeployDirectories_ = null;
+         }
+      }
+
+      if (appDeployDirectories_ == null)
+      {
+         if (logEnabled && LOG.isInfoEnabled())
+            LOG.info("No location of the archives has been set");
+      }
+      serverHome_ = serverHome_.replace('\\', '/');
+      exoConfDir_ = exoConfDir_.replace('\\', '/');
    }
 
    /**

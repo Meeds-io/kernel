@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.jdbc.impl;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -64,7 +63,7 @@ public class CloseableDataSource implements DataSource
    /**
     * Property value which responsible for allowing of closed DataSource usage.
     */
-   private static final boolean PROHIBIT_CLOSED_DATASOURCE_USAGE = Boolean.valueOf(PrivilegedSystemHelper.getProperty(
+   private static final boolean PROHIBIT_CLOSED_DATASOURCE_USAGE = Boolean.valueOf(System.getProperty(
       "exo.jcr.prohibit.closed.datasource.usage", "true"));
 
    /**

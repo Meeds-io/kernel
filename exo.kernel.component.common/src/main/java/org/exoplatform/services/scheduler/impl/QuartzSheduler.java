@@ -21,7 +21,6 @@ package org.exoplatform.services.scheduler.impl;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.Properties;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.BaseContainerLifecyclePlugin;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
@@ -36,8 +35,6 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 
 /**
  * Created by The eXo Platform SAS Author : Tuan Nguyen
@@ -94,32 +91,7 @@ public class QuartzSheduler implements Startable
       {
          sf = new StdSchedulerFactory();
       }
-      try
-      {
-         scheduler_ = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Scheduler>()
-         {
-            public Scheduler run() throws Exception
-            {
-               return sf.getScheduler();
-            }
-         });
-      }
-      catch (PrivilegedActionException pae)
-      {
-         Throwable cause = pae.getCause();
-         if (cause instanceof SchedulerException)
-         {
-            throw (SchedulerException)cause;
-         }
-         else if (cause instanceof RuntimeException)
-         {
-            throw (RuntimeException)cause;
-         }
-         else
-         {
-            throw new RuntimeException(cause);
-         }
-      }
+      scheduler_ = sf.getScheduler();
       
       // If the scheduler has already been started, it is necessary to put the scheduler
       // in standby mode to ensure that the jobs of the ExoContainer won't launched too early
@@ -163,14 +135,7 @@ public class QuartzSheduler implements Startable
    private Connection getConnection(String dsName) throws Exception
    {
      final DataSource dsF = (DataSource) new InitialContext().lookup(dsName);
-     Connection jdbcConn = SecurityHelper.doPrivilegedSQLExceptionAction(new PrivilegedExceptionAction<Connection>()
-     {
-       public Connection run() throws Exception
-       {
-         return dsF.getConnection();
-       }
-     });
-     return jdbcConn;
+     return dsF.getConnection();
    }
 
     /**
@@ -178,13 +143,7 @@ public class QuartzSheduler implements Startable
      */
    private String getDriverDelegateClass(final DatabaseMetaData metaData) throws Exception
    {
-     String databaseName = (String) SecurityHelper.doPrivilegedSQLExceptionAction(new PrivilegedExceptionAction()
-     {
-       public String run() throws Exception
-       {
-         return metaData.getDatabaseProductName();
-       }
-     });
+     String databaseName = metaData.getDatabaseProductName();
      if(databaseName == null || databaseName.isEmpty())
      {
          LOG.warn("The database name cannot be retrieve, the default DriverDelegateClass will be used for Quartz.");

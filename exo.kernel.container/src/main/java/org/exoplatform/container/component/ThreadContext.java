@@ -50,9 +50,6 @@ public class ThreadContext
    @SuppressWarnings("unchecked")
    public ThreadContext(ThreadLocal<?>... threadLocals)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ThreadContextHolder.MANAGE_THREAD_LOCAL);
       this.threadLocals = (ThreadLocal<Object>[])threadLocals;
    }
 
@@ -63,9 +60,6 @@ public class ThreadContext
    @SuppressWarnings("unchecked")
    private ThreadContext(List<ThreadContext> contexts)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ThreadContextHolder.MANAGE_THREAD_LOCAL);
       if (contexts == null)
       {
          this.threadLocals = null;

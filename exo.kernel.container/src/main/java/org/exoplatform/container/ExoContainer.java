@@ -20,11 +20,9 @@ package org.exoplatform.container;
 
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.component.ComponentLifecyclePlugin;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.context.ContextManager;
-import org.exoplatform.container.security.ContainerPermissions;
 import org.exoplatform.container.spi.ComponentAdapter;
 import org.exoplatform.container.spi.Container;
 import org.exoplatform.container.spi.ContainerException;
@@ -44,7 +42,6 @@ import org.exoplatform.services.log.Log;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -198,14 +195,8 @@ public class ExoContainer extends AbstractContainer
       this.context = new ExoContainerContext(this, this.getClass().getSimpleName());
       this.parent = parent;
       this.delegate = InterceptorChainFactoryProvider.getInterceptorChainFactory().getInterceptorChain(this, parent);
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            registerComponentInstance(context);
-            return null;
-         }
-      });
+      registerComponentInstance(context);
+
    }
 
    public ExoContainerContext getContext()
@@ -257,10 +248,6 @@ public class ExoContainer extends AbstractContainer
 
    public synchronized void dispose()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       if (canBeDisposed())
       {
          destroyContainerInternal();
@@ -284,10 +271,6 @@ public class ExoContainer extends AbstractContainer
 
    public synchronized void initialize()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       if (canBeInitialized())
       {
          // Initialize the successors
@@ -300,10 +283,6 @@ public class ExoContainer extends AbstractContainer
 
    public synchronized void start()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       if (canBeStarted())
       {
          super.start();
@@ -314,10 +293,6 @@ public class ExoContainer extends AbstractContainer
 
    public synchronized void stop()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       if (canBeStopped())
       {
          stopping.set(true);
@@ -374,10 +349,6 @@ public class ExoContainer extends AbstractContainer
 
    public void addComponentLifecylePlugin(ComponentLifecyclePlugin plugin)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       List<String> list = plugin.getManageableComponents();
       for (String component : list)
          componentLifecylePlugin_.put(component, plugin);
@@ -385,10 +356,6 @@ public class ExoContainer extends AbstractContainer
 
    public void addContainerLifecylePlugin(ContainerLifecyclePlugin plugin)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-
       containerLifecyclePlugin_.add(plugin);
    }
 
@@ -717,81 +684,75 @@ public class ExoContainer extends AbstractContainer
    private <T> boolean autoRegister(final DefinitionType definitionType, final Object componentKey,
       final Class<T> componentType)
    {
-      return SecurityHelper.doPrivilegedAction(new PrivilegedAction<Boolean>()
+      Class<?> type;
+      Class<? extends ExoContainer>[] containers;
+      if (definitionType == DefinitionType.TYPE)
       {
-         public Boolean run()
+         DefinitionByType definition = componentType.getAnnotation(DefinitionByType.class);
+         containers = definition.target();
+         type = definition.type();
+      }
+      else if (definitionType == DefinitionType.NAME)
+      {
+         DefinitionByName definition = componentType.getAnnotation(DefinitionByName.class);
+         if (!definition.named().equals(componentKey))
          {
-            Class<?> type;
-            Class<? extends ExoContainer>[] containers;
-            if (definitionType == DefinitionType.TYPE)
-            {
-               DefinitionByType definition = componentType.getAnnotation(DefinitionByType.class);
-               containers = definition.target();
-               type = definition.type();
-            }
-            else if (definitionType == DefinitionType.NAME)
-            {
-               DefinitionByName definition = componentType.getAnnotation(DefinitionByName.class);
-               if (!definition.named().equals(componentKey))
-               {
-                  return false;
-               }
-               containers = definition.target();
-               type = definition.type();
-            }
-            else
-            {
-               DefinitionByQualifier definition = componentType.getAnnotation(DefinitionByQualifier.class);
-               if (!definition.qualifier().equals(componentKey))
-               {
-                  return false;
-               }
-               containers = definition.target();
-               type = definition.type();
-            }
-            if (!accepts(containers))
-            {
-               // The class of the current container is not part of the allowed classes.
-               return false;
-            }
-            if (type.equals(void.class))
-            {
-               // No default implementation has been set
-               if (componentType.isInterface() || Modifier.isAbstract(componentType.getModifiers()))
-               {
-                  throw new IllegalArgumentException("The class " + componentType.getName()
-                     + " is an interface or an abstract class so it cannot be automatically registered without a type.");
-               }
-               if (definitionType == DefinitionType.TYPE)
-               {
-                  registerComponentImplementation(componentType);
-               }
-               else
-               {
-                  registerComponentImplementation(componentKey, componentType);
-               }
-            }
-            else if (!componentType.isAssignableFrom(type))
-            {
-               throw new IllegalArgumentException("The class " + type.getName() + " must be a sub class of "
-                  + componentType.getName() + ".");
-            }
-            else if (type.isInterface() || Modifier.isAbstract(type.getModifiers()))
-            {
-               throw new IllegalArgumentException("The class " + type.getName()
-                  + " is an interface or an abstract class so it cannot be used as default implementation.");
-            }
-            else if (definitionType == DefinitionType.TYPE)
-            {
-               registerComponentImplementation(componentType, type);
-            }
-            else
-            {
-               registerComponentImplementation(componentKey, type);
-            }
-            return true;
+            return false;
          }
-      });
+         containers = definition.target();
+         type = definition.type();
+      }
+      else
+      {
+         DefinitionByQualifier definition = componentType.getAnnotation(DefinitionByQualifier.class);
+         if (!definition.qualifier().equals(componentKey))
+         {
+            return false;
+         }
+         containers = definition.target();
+         type = definition.type();
+      }
+      if (!accepts(containers))
+      {
+         // The class of the current container is not part of the allowed classes.
+         return false;
+      }
+      if (type.equals(void.class))
+      {
+         // No default implementation has been set
+         if (componentType.isInterface() || Modifier.isAbstract(componentType.getModifiers()))
+         {
+            throw new IllegalArgumentException("The class " + componentType.getName()
+                                                   + " is an interface or an abstract class so it cannot be automatically registered without a type.");
+         }
+         if (definitionType == DefinitionType.TYPE)
+         {
+            registerComponentImplementation(componentType);
+         }
+         else
+         {
+            registerComponentImplementation(componentKey, componentType);
+         }
+      }
+      else if (!componentType.isAssignableFrom(type))
+      {
+         throw new IllegalArgumentException("The class " + type.getName() + " must be a sub class of "
+                                                + componentType.getName() + ".");
+      }
+      else if (type.isInterface() || Modifier.isAbstract(type.getModifiers()))
+      {
+         throw new IllegalArgumentException("The class " + type.getName()
+                                                + " is an interface or an abstract class so it cannot be used as default implementation.");
+      }
+      else if (definitionType == DefinitionType.TYPE)
+      {
+         registerComponentImplementation(componentType, type);
+      }
+      else
+      {
+         registerComponentImplementation(componentKey, type);
+      }
+      return true;
    }
 
    /**

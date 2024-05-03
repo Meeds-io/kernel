@@ -18,12 +18,12 @@
  */
 package org.exoplatform.container.util;
 
-import org.exoplatform.commons.utils.PrivilegedFileHelper;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public class TemplateConfigurationHelper
       {
          try
          {
-            inputStream = PrivilegedFileHelper.fileInputStream(filename);
+            inputStream = new FileInputStream(filename);
          }
          catch (IOException e)
          {

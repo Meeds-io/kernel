@@ -19,7 +19,6 @@
 package org.exoplatform.xml.object;
 
 import org.exoplatform.commons.utils.ClassLoading;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.xml.Configuration;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -33,9 +32,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -266,14 +262,7 @@ public class XMLObject
          
          final Field fld = field[i];
 
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-         {
-            public Void run()
-            {
-               fld.setAccessible(true);
-               return null;
-            }
-         });
+         fld.setAccessible(true);
 
          fields.put(field[i].getName(), field[i]);
       }
@@ -281,31 +270,6 @@ public class XMLObject
 
    protected static IBindingFactory getBindingFactoryInPriviledgedMode(final Class<?> clazz) throws JiBXException
    {
-      try
-      {
-         return SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<IBindingFactory>()
-         {
-            public IBindingFactory run() throws Exception
-            {
-               return BindingDirectory.getFactory(clazz);
-            }
-         });
-      }
-      catch (PrivilegedActionException pae)
-      {
-         Throwable cause = pae.getCause();
-         if (cause instanceof JiBXException)
-         {
-            throw (JiBXException)cause;
-         }
-         else if (cause instanceof RuntimeException)
-         {
-            throw (RuntimeException)cause;
-         }
-         else
-         {
-            throw new RuntimeException(cause);
-         }
-      }
+      return BindingDirectory.getFactory(clazz);
    }
 }

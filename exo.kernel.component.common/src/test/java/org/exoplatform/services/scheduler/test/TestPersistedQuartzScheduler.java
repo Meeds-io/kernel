@@ -2,7 +2,6 @@ package org.exoplatform.services.scheduler.test;
 
 import junit.framework.TestCase;
 import org.exoplatform.commons.utils.IOUtil;
-import org.exoplatform.commons.utils.PrivilegedFileHelper;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
@@ -37,7 +36,7 @@ public class TestPersistedQuartzScheduler extends TestCase {
         st = connection.createStatement();
 
         /***init quartz tables***/
-        String scripts = IOUtil.getStreamContentAsString(PrivilegedFileHelper.getResourceAsStream("/quartz_hsqldb.sql"));
+        String scripts = IOUtil.getStreamContentAsString(this.getClass().getResourceAsStream("/quartz_hsqldb.sql"));
 
         for (String query : splitWithSQLDelimiter(scripts)) {
             st.executeUpdate(query);
