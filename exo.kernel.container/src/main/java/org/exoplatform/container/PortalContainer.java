@@ -19,12 +19,10 @@
 package org.exoplatform.container;
 
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.RootContainer.PortalContainerInitTask;
 import org.exoplatform.container.RootContainer.PortalContainerPostInitTask;
 import org.exoplatform.container.RootContainer.PortalContainerPreInitTask;
 import org.exoplatform.container.definition.PortalContainerConfig;
-import org.exoplatform.container.security.ContainerPermissions;
 import org.exoplatform.container.util.ContainerUtil;
 import org.exoplatform.container.xml.Configuration;
 import org.exoplatform.container.xml.PortalContainerInfo;
@@ -35,7 +33,6 @@ import org.exoplatform.management.jmx.annotations.NamingContext;
 import org.exoplatform.management.jmx.annotations.Property;
 import org.exoplatform.management.rest.annotations.RESTEndpoint;
 
-import java.security.PrivilegedAction;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -140,24 +137,11 @@ public class PortalContainer extends ExoContainer
    {
       super(parent);
       this.name = ContainerUtil.getServletContextName(portalContext);
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            context.setName(name);
-            return null;
-         }
-      });
+      context.setName(name);
+
       pinfo_ = new PortalContainerInfo(portalContext);
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            registerComponentInstance(ServletContext.class, portalContext);
-            registerComponentInstance(PortalContainerInfo.class, pinfo_);
-            return null;
-         }
-      });
+      registerComponentInstance(ServletContext.class, portalContext);
+      registerComponentInstance(PortalContainerInfo.class, pinfo_);
       final PortalContainerConfig config = parent.getPortalContainerConfig();
       final List<String> dependencies = config == null ? null : config.getDependencies(name);
       if (dependencies == null || dependencies.isEmpty())
@@ -172,13 +156,7 @@ public class PortalContainer extends ExoContainer
       this.webAppContexts = Collections.singleton(new WebAppInitContext(portalContext));
       this.portalContext = portalContext;
       this.portalMergedContext = new PortalContainerContext(this);
-      this.portalMergedClassLoader = SecurityHelper.doPrivilegedAction(new PrivilegedAction<ClassLoader>()
-      {
-         public ClassLoader run()
-         {
-            return new PortalContainerClassLoader(PortalContainer.this);
-         }
-      });
+      this.portalMergedClassLoader = new PortalContainerClassLoader(PortalContainer.this);
       this.webAppClassLoaders = Collections.unmodifiableMap(Collections.singletonMap(name, portalMergedClassLoader));
    }
 
@@ -248,9 +226,6 @@ public class PortalContainer extends ExoContainer
     */
    public synchronized void registerContext(ServletContext context)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
       final WebAppInitContext webappCtx = new WebAppInitContext(context);
       if (!webAppContexts.contains(webappCtx))
       {
@@ -275,10 +250,6 @@ public class PortalContainer extends ExoContainer
     */
    public synchronized void unregisterContext(ServletContext context)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       final WebAppInitContext webappCtx = new WebAppInitContext(context);
       if (webAppContexts.contains(webappCtx))
       {
@@ -343,14 +314,7 @@ public class PortalContainer extends ExoContainer
       {
          container = RootContainer.getInstance().getPortalContainer(DEFAULT_PORTAL_CONTAINER_NAME);
          final PortalContainer currentPortalContainer = container;
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-         {
-            public Void run()
-            {
-               PortalContainer.setInstance(currentPortalContainer);
-               return null;
-            }
-         });
+         PortalContainer.setInstance(currentPortalContainer);
       }
       return container;
    }

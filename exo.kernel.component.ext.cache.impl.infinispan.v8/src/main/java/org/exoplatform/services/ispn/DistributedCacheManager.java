@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.ispn;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.util.TemplateConfigurationHelper;
@@ -38,7 +37,6 @@ import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.transaction.lookup.TransactionManagerLookup;
 import org.picocontainer.Startable;
 
-import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -145,41 +143,35 @@ public class DistributedCacheManager implements Startable
          {
             LOG.debug("The parameters to use while processing the configuration file are " + parameters);
          }
-         return SecurityHelper.doPrivilegedIOExceptionAction(new PrivilegedExceptionAction<EmbeddedCacheManager>()
+         ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
+         // Load the configuration
+         ConfigurationBuilderHolder holder = parser.parse(helper.fillTemplate(configurationFile, parameters));
+         GlobalConfigurationBuilder configBuilder = holder.getGlobalConfigurationBuilder();
+         Utils.loadJGroupsConfig(configManager, configBuilder.build(), configBuilder);
+         // Create the CacheManager from the new configuration
+         EmbeddedCacheManager manager =
+             new DefaultCacheManager(configBuilder.build(), holder.getDefaultConfigurationBuilder().build());
+         TransactionManagerLookup tml = new TransactionManagerLookup()
          {
-            public EmbeddedCacheManager run() throws Exception
+            public TransactionManager getTransactionManager() throws Exception
             {
-               ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
-               // Load the configuration
-               ConfigurationBuilderHolder holder = parser.parse(helper.fillTemplate(configurationFile, parameters));
-               GlobalConfigurationBuilder configBuilder = holder.getGlobalConfigurationBuilder();
-               Utils.loadJGroupsConfig(configManager, configBuilder.build(), configBuilder);
-               // Create the CacheManager from the new configuration
-               EmbeddedCacheManager manager =
-                  new DefaultCacheManager(configBuilder.build(), holder.getDefaultConfigurationBuilder().build());
-               TransactionManagerLookup tml = new TransactionManagerLookup()
-               {
-                  public TransactionManager getTransactionManager() throws Exception
-                  {
-                     return tm;
-                  }
-               };
-               for (Entry<String, ConfigurationBuilder> entry : holder.getNamedConfigurationBuilders().entrySet())
-               {
-                  ConfigurationBuilder b = entry.getValue();
-                  if (tm != null)
-                  {
-                     b.transaction().transactionManagerLookup(tml);
-                  }
-                  manager.defineConfiguration(entry.getKey(), b.build());
-               }
-               for( String cacheName : manager.getCacheNames())
-               {
-                  manager.getCache(cacheName);
-               }
-               return manager;
+               return tm;
             }
-         });
+         };
+         for (Entry<String, ConfigurationBuilder> entry : holder.getNamedConfigurationBuilders().entrySet())
+         {
+            ConfigurationBuilder b = entry.getValue();
+            if (tm != null)
+            {
+               b.transaction().transactionManagerLookup(tml);
+            }
+            manager.defineConfiguration(entry.getKey(), b.build());
+         }
+         for( String cacheName : manager.getCacheNames())
+         {
+            manager.getCache(cacheName);
+         }
+         return manager;
       }
       catch (Exception e)//NOSONAR
       {

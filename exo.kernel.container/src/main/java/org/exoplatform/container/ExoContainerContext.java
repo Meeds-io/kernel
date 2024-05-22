@@ -131,9 +131,6 @@ public final class ExoContainerContext implements java.io.Serializable
     */
    public void setName(String name)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);     
       this.name = name;
    }
    /**
@@ -152,10 +149,6 @@ public final class ExoContainerContext implements java.io.Serializable
     */
    static void setTopContainer(ExoContainer cont)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       if (topContainer != null && cont != null && cont != topContainer) //NOSONAR
       {
          throw new IllegalStateException("Two top level containers created, but must be only one.");
@@ -195,9 +188,6 @@ public final class ExoContainerContext implements java.io.Serializable
     */
    public static void setCurrentContainer(ExoContainer instance)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);      
       currentContainer.set(instance == null ? null : new WeakReference<ExoContainer>(instance));
    }
    /**
@@ -233,10 +223,6 @@ public final class ExoContainerContext implements java.io.Serializable
     */
    public void setAttribute(String name, Object value)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       attributes.put(name, value);
    }
 

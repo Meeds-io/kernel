@@ -72,7 +72,7 @@ public class IOUtil
       {
          throw new IllegalArgumentException("No null file accepted");
       }
-      FileInputStream is = PrivilegedFileHelper.fileInputStream(file);
+      FileInputStream is = new FileInputStream(file);
       return new String(getStreamContentAsBytes(is), charset);
    }
 
@@ -136,7 +136,7 @@ public class IOUtil
       {
          throw new IllegalArgumentException("No null file name accepted");
       }
-      FileInputStream is = PrivilegedFileHelper.fileInputStream(fileName);
+      FileInputStream is = new FileInputStream(fileName);
       return getStreamContentAsBytes(is);
    }
 

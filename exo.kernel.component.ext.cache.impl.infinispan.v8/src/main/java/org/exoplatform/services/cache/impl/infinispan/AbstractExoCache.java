@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.cache.impl.infinispan;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.cache.CacheInfo;
 import org.exoplatform.services.cache.CacheListener;
 import org.exoplatform.services.cache.CacheListenerContext;
@@ -27,7 +26,6 @@ import org.exoplatform.services.cache.CachedObjectSelector;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.cache.ExoCacheConfig;
 import org.exoplatform.services.cache.ObjectCacheInfo;
-import org.exoplatform.services.cache.impl.infinispan.generic.GenericExoCacheConfig;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.infinispan.AdvancedCache;
@@ -45,7 +43,6 @@ import org.infinispan.notifications.cachelistener.event.CacheEntryModifiedEvent;
 import org.infinispan.notifications.cachelistener.event.CacheEntryRemovedEvent;
 
 import java.io.Serializable;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -273,16 +270,7 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
           }
         }
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-
-         @Override
-         public Void run()
-         {
-            putOnly(key, value, false);
-            return null;
-         }
-      });
+      putOnly(key, value, false);
       onPut(key, value);
    }
 
@@ -298,16 +286,8 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
          return;
       }
 
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
+      putOnly(key, value,  true);
 
-         @Override
-         public Void run()
-         {
-            putOnly(key, value,  true);
-            return null;
-         }
-      });
       onPutLocal(key, value);
    }
 
@@ -350,44 +330,35 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
             throw new IllegalArgumentException("No null cache key accepted");
          }
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      // Start transaction
+      if(cache.getTransactionManager() != null) {
+         cache.startBatch();
+      }
+      try
       {
-
-         @Override
-         public Void run()
+         // Make sure that the key and the value are valid
+         Map<K, V> map = new LinkedHashMap<K, V>();
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
          {
-            // Start transaction
-            if(cache.getTransactionManager() != null) {
-              cache.startBatch();
-            }
-            try
-            {
-               // Make sure that the key and the value are valid
-               Map<K, V> map = new LinkedHashMap<K, V>();
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  map.put(entry.getKey(), entry.getValue());
-               }
-               cache.putAll(map);
-               if(cache.getTransactionManager() != null) {
-                 cache.endBatch(true);
-               }
-               // End transaction
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  onPut(entry.getKey(), entry.getValue());
-               }
-            }
-            catch (Exception e) //NOSONAR
-            {
-               if(cache.getTransactionManager() != null) {
-                 cache.endBatch(false);
-               }
-               LOG.warn("An error occurs while executing the putMap method", e);
-            }
-            return null;
+            map.put(entry.getKey(), entry.getValue());
          }
-      });
+         cache.putAll(map);
+         if(cache.getTransactionManager() != null) {
+            cache.endBatch(true);
+         }
+         // End transaction
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
+         {
+            onPut(entry.getKey(), entry.getValue());
+         }
+      }
+      catch (Exception e) //NOSONAR
+      {
+         if(cache.getTransactionManager() != null) {
+            cache.endBatch(false);
+         }
+         LOG.warn("An error occurs while executing the putMap method", e);
+      }
    }
 
    /**
@@ -406,34 +377,25 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
             throw new IllegalArgumentException("No null cache key accepted");
          }
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      try
       {
-
-         @Override
-         public Void run()
+         // Make sure that the key and the value are valid
+         Map<K, V> map = new LinkedHashMap<K, V>();
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
          {
-            try
-            {
-               // Make sure that the key and the value are valid
-               Map<K, V> map = new LinkedHashMap<K, V>();
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  map.put(entry.getKey(), entry.getValue());
-               }
-               cache.putAllAsync(map);
-               // End transaction
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  onPut(entry.getKey(), entry.getValue());
-               }
-            }
-            catch (Exception e) //NOSONAR
-            {
-               LOG.warn("An error occurs while executing the putMap method", e);
-            }
-            return null;
+            map.put(entry.getKey(), entry.getValue());
          }
-      });
+         cache.putAllAsync(map);
+         // End transaction
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
+         {
+            onPut(entry.getKey(), entry.getValue());
+         }
+      }
+      catch (Exception e) //NOSONAR
+      {
+         LOG.warn("An error occurs while executing the putMap method", e);
+      }
    }
 
    /**
@@ -446,15 +408,7 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
       {
          throw new IllegalArgumentException("No null cache key accepted");
       }
-      V result = SecurityHelper.doPrivilegedAction(new PrivilegedAction<V>()
-      {
-
-         @Override
-         public V run()
-         {
-            return cache.remove(key);
-         }
-      });
+      V result = cache.remove(key);
       onRemove((K)key, result);
       return result;
    }
@@ -469,16 +423,7 @@ public abstract class AbstractExoCache<K extends Serializable, V> implements Exo
       {
          throw new IllegalArgumentException("No null cache key accepted");
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-
-         @Override
-         public Void run()
-         {
-            cache.withFlags(Flag.CACHE_MODE_LOCAL).removeAsync(key);
-            return null;
-         }
-      });
+      cache.withFlags(Flag.CACHE_MODE_LOCAL).removeAsync(key);
       onRemove((K)key, null);
    }
 

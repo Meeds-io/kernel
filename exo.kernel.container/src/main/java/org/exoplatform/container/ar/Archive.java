@@ -18,7 +18,6 @@
  */
 package org.exoplatform.container.ar;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.xml.Deserializer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -28,7 +27,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -448,13 +446,7 @@ public class Archive
       // we ensure that we don't have windows path separator in the url
       url = url.replace('\\', '/');
       final String sUrl = url;
-      return SecurityHelper.doPrivilegedMalformedURLExceptionAction(new PrivilegedExceptionAction<URL>()
-      {
-         public URL run() throws Exception
-         {
-            return new URL(null, sUrl, HANDLER);
-         }
-      });
+      return new URL(null, sUrl, HANDLER);
    }
 
    /**

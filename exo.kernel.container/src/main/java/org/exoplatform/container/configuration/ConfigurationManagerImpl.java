@@ -18,7 +18,6 @@
  */
 package org.exoplatform.container.configuration;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ar.Archive;
 import org.exoplatform.container.xml.Component;
 import org.exoplatform.container.xml.Configuration;
@@ -30,8 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -317,13 +314,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager
             + ") could not be found or the invoker doesn't have adequate privileges to get the resource");
       }
 
-      return SecurityHelper.doPrivilegedIOExceptionAction(new PrivilegedExceptionAction<InputStream>()
-      {
-         public InputStream run() throws Exception
-         {
-            return url.openStream();
-         }
-      });
+      return url.openStream();
    }
 
    public URL getURL(String url) throws Exception
@@ -346,13 +337,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager
          }
          final ClassLoader cl = Thread.currentThread().getContextClassLoader();
          final String finalPath = path;
-         return SecurityHelper.doPrivilegedAction(new PrivilegedAction<URL>()
-         {
-            public URL run()
-            {
-               return cl.getResource(finalPath);
-            }
-         });
+         return cl.getResource(finalPath);
       }
       else if (url.startsWith("classpath:"))
       {
@@ -363,13 +348,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager
          }
          final ClassLoader cl = Thread.currentThread().getContextClassLoader();
          final String finalPath = path;
-         return SecurityHelper.doPrivilegedAction(new PrivilegedAction<URL>()
-         {
-            public URL run()
-            {
-               return cl.getResource(finalPath);
-            }
-         });
+         return cl.getResource(finalPath);
       }
       else if (url.startsWith("war:"))
       {
@@ -377,13 +356,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager
          if (context != null)
          {
             final String fPath = path;
-            return SecurityHelper.doPrivilegedMalformedURLExceptionAction(new PrivilegedExceptionAction<URL>()
-            {
-               public URL run() throws Exception
-               {
-                  return context.getResource(WAR_CONF_LOCATION + fPath);
-               }
-            });
+            return context.getResource(WAR_CONF_LOCATION + fPath);
          }
          if (scontextClassLoader_ != null)
          {
@@ -393,13 +366,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager
                path = path.substring(1);
             }
             final String fPath = path;
-            return SecurityHelper.doPrivilegedAction(new PrivilegedAction<URL>()
-            {
-               public URL run()
-               {
-                  return scontextClassLoader_.getResource(fPath);
-               }
-            });
+            return scontextClassLoader_.getResource(fPath);
          }
          throw new Exception("unsupport war uri in this configuration service");
       }

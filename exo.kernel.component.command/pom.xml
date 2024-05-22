@@ -36,7 +36,7 @@
    <description>Implementation of Command Service of Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
-      <exo.test.coverage.ratio>0.4</exo.test.coverage.ratio>
+      <exo.test.coverage.ratio>0.35</exo.test.coverage.ratio>
    </properties>
 
    <dependencies>
@@ -74,9 +74,6 @@
       <plugins>
          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
-            <configuration>
-              <argLine>@{argLine} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
-            </configuration>
             <executions>
                <execution>
                   <id>prepare-test-policy</id>

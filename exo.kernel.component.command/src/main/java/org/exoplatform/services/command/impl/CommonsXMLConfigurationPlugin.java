@@ -19,7 +19,6 @@
 package org.exoplatform.services.command.impl;
 
 import org.apache.commons.chain.config.ConfigParser;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.component.BaseComponentPlugin;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.xml.InitParams;
@@ -28,8 +27,6 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.net.URL;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 
 /**
  * Created by The eXo Platform SAS.<br> The plugin for configuring
@@ -57,13 +54,7 @@ public class CommonsXMLConfigurationPlugin extends BaseComponentPlugin
          final ConfigParser parser = new ConfigParser();
          // may work for StandaloneContainer
          
-         URL res = SecurityHelper.doPrivilegedAction(new PrivilegedAction<URL>()
-         {
-            public URL run()
-            {
-               return Thread.currentThread().getContextClassLoader().getResource(path);
-            }
-         });
+         URL res = Thread.currentThread().getContextClassLoader().getResource(path);
          
          // for PortalContainer
          if (res == null)
@@ -73,14 +64,7 @@ public class CommonsXMLConfigurationPlugin extends BaseComponentPlugin
          LOG.info("Catalog configuration found at " + res);
          
          final URL fRes = res;
-         SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-         {
-            public Void run() throws Exception
-            {
-               parser.parse(fRes);
-               return null;
-            }
-         });
+         parser.parse(fRes);
       }
 
    }

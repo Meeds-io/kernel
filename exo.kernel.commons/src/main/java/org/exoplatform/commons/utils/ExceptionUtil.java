@@ -26,7 +26,7 @@ package org.exoplatform.commons.utils;
  */
 public class ExceptionUtil
 {
-   private static String LINE_SEPARATOR = PrivilegedSystemHelper.getProperty("line.separator");
+   private static String LINE_SEPARATOR = System.getProperty("line.separator");
 
    static public String getExoStackTrace(Throwable t)
    {

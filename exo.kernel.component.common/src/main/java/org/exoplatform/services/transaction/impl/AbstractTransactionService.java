@@ -18,13 +18,10 @@
  */
 package org.exoplatform.services.transaction.impl;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.transaction.TransactionService;
-
-import java.security.PrivilegedExceptionAction;
 
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
@@ -163,13 +160,7 @@ public abstract class AbstractTransactionService implements TransactionService
                TransactionManager tm;
                try
                {
-                  tm = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<TransactionManager>()
-                  {
-                     public TransactionManager run() throws Exception
-                     {
-                        return findTransactionManager();
-                     }
-                  });
+                  tm = findTransactionManager();
                }
                catch (Exception e)
                {
@@ -218,13 +209,7 @@ public abstract class AbstractTransactionService implements TransactionService
                UserTransaction ut;
                try
                {
-                  ut = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<UserTransaction>()
-                  {
-                     public UserTransaction run() throws Exception
-                     {
-                        return findUserTransaction();
-                     }
-                  });
+                  ut = findUserTransaction();
                }
                catch (Exception e)
                {

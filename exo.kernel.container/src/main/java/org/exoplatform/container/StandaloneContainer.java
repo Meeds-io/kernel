@@ -18,8 +18,6 @@
  */
 package org.exoplatform.container;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.configuration.ConfigurationException;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.configuration.ConfigurationManagerImpl;
@@ -38,8 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -92,18 +88,11 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
    {
       //
       configurationManager = new ConfigurationManagerImpl(configClassLoader, ExoContainer.getProfilesFromProperty());
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            registerComponentInstance(ConfigurationManager.class, configurationManager);
-            // Workaround used to allow to use the PropertyConfigurator with the StandaloneContainer
-            // If the system property PropertyManager.PROPERTIES_URL has been set properly, it will load the properties
-            // from the file and load them as system properties
-            new PropertyConfigurator(configurationManager);
-            return null;
-         }
-      });      
+      registerComponentInstance(ConfigurationManager.class, configurationManager);
+      // Workaround used to allow to use the PropertyConfigurator with the StandaloneContainer
+      // If the system property PropertyManager.PROPERTIES_URL has been set properly, it will load the properties
+      // from the file and load them as system properties
+      new PropertyConfigurator(configurationManager);
    }
 
    /**
@@ -173,14 +162,8 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
       MalformedURLException, ConfigurationException
    {
       final StandaloneContainer container = new StandaloneContainer(configClassLoader);
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            ExoContainerContext.setTopContainer(container);
-            return null;
-         }
-      });
+      ExoContainerContext.setTopContainer(container);
+
       if (useDefault)
          container.initDefaultConf();
       // initialize configurationURL
@@ -188,15 +171,8 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
       container.populate(configurationURL);
       if (components != null)
          container.registerArray(components);
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            container.start(true);
-            return null;
-         }
-      });
-      PrivilegedSystemHelper.setProperty("exo.standalone-container", StandaloneContainer.class.getName());
+      container.start(true);
+      System.setProperty("exo.standalone-container", StandaloneContainer.class.getName());
       LOG.info("StandaloneContainer initialized using:  " + configurationURL);
       container.onStartupComplete();
       return container;
@@ -278,13 +254,7 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
       if ((path == null) || (path.length() == 0))
          return;
 
-      URL confURL = SecurityHelper.doPrivilegedMalformedURLExceptionAction(new PrivilegedExceptionAction<URL>()
-      {
-         public URL run() throws Exception
-         {
-            return new File(path).toURI().toURL();
-         }
-      });
+      URL confURL = new File(path).toURI().toURL();
 
       configurationURL = fileExists(confURL) ? confURL : null;
    }
@@ -341,14 +311,7 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
    {
       try
       {
-         SecurityHelper.doPrivilegedIOExceptionAction(new PrivilegedExceptionAction<Void>()
-         {
-            public Void run() throws IOException
-            {
-               url.openStream().close();
-               return null;
-            }
-         });
+         url.openStream().close();
          return true;
       }
       catch (IOException e)
@@ -388,26 +351,12 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
       final J2EEServerInfo env = new J2EEServerInfo();
       
       // (2) exo-configuration.xml in AS (standalone) home directory
-      URL configurationURL =
-         SecurityHelper.doPrivilegedMalformedURLExceptionAction(new PrivilegedExceptionAction<URL>()
-         {
-            public URL run() throws Exception
-            {
-               return (new File(env.getServerHome() + "/exo-configuration.xml")).toURI().toURL();
-            }
-         });
+      URL configurationURL = (new File(env.getServerHome() + "/exo-configuration.xml")).toURI().toURL();
 
       // (3) AS_HOME/conf/exo-conf (JBossAS usecase)
       if (!fileExists(configurationURL))
       {
-         configurationURL =
-            SecurityHelper.doPrivilegedMalformedURLExceptionAction(new PrivilegedExceptionAction<URL>()
-            {
-               public URL run() throws Exception
-               {
-                  return (new File(env.getExoConfigurationDirectory() + "/exo-configuration.xml")).toURI().toURL();
-               }
-            });
+         configurationURL = (new File(env.getExoConfigurationDirectory() + "/exo-configuration.xml")).toURI().toURL();
       }
       
       // (4) conf/exo-configuration.xml in war/ear(?)
@@ -439,14 +388,7 @@ public class StandaloneContainer extends ExoContainer implements TopExoContainer
    {
       configurationManager.addConfiguration(conf);
       configurationManager.processRemoveConfiguration();
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            ContainerUtil.addComponents(StandaloneContainer.this, configurationManager);
-            return null;
-         }
-      });
+      ContainerUtil.addComponents(StandaloneContainer.this, configurationManager);
    }
 
    /**

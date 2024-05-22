@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.cache.impl.infinispan;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.xml.InitParams;
@@ -48,8 +47,6 @@ import org.picocontainer.Startable;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,74 +181,53 @@ public class ExoCacheFactoryImpl implements ExoCacheFactory, Startable {
     */
    private DefaultCacheManager initCacheManager(final String cacheConfigTemplate) throws ExoCacheInitException
    {
+      InputStream is = null;
       try
       {
-         return SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<DefaultCacheManager>()
-         {
-            public DefaultCacheManager run() throws Exception
-            {
-               InputStream is = null;
-               try
-               {
-                  // Read the configuration file of the cache
-                  is = configManager.getInputStream(cacheConfigTemplate);
-               }
-               catch (Exception e)//NOSONAR
-               {
-                  throw new ExoCacheInitException("The configuration of the CacheManager cannot be loaded from '"
-                     + cacheConfigTemplate + "'", e);
-               }
-               if (is == null)
-               {
-                  throw new ExoCacheInitException("The configuration of the CacheManager cannot be found at '"
-                     + cacheConfigTemplate + "'");
-               }
-               GlobalConfigurationBuilder configBuilder;
-               Configuration config;
-               try
-               {
-                  ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
-                  // Loads the configuration from the input stream
-                  ConfigurationBuilderHolder holder = parser.parse(is);
-                  configBuilder = holder.getGlobalConfigurationBuilder();
-                  config = holder.getDefaultConfigurationBuilder().build();
-               }
-               catch (RuntimeException e) //NOSONAR
-               {
-                  throw new ExoCacheInitException("Cannot parse the configuration '" + cacheConfigTemplate + "'", e);
-               }
-               configureCacheManager(configBuilder);
-               DefaultCacheManager cacheManager;
-               try
-               {
-                  // Create the CacheManager from the new configuration
-                  cacheManager = new DefaultCacheManager(configBuilder.build(), config);
-               }
-               catch (RuntimeException e) //NOSONAR
-               {
-                  throw new ExoCacheInitException(
-                     "Cannot initialize the CacheManager corresponding to the configuration '" + cacheConfigTemplate
-                        + "'", e);
-               }
-               // Register the main cache manager
-               mappingGlobalConfigCacheManager.put(cacheManager.getCacheManagerConfiguration().transport().clusterName(),
-                  cacheManager);
-               return cacheManager;
-            }
-         });
+         // Read the configuration file of the cache
+         is = configManager.getInputStream(cacheConfigTemplate);
       }
-      catch (PrivilegedActionException e)
+      catch (Exception e)//NOSONAR
       {
-         Throwable cause = e.getCause();
-         if (cause instanceof ExoCacheInitException)
-         {
-            throw (ExoCacheInitException)cause;//NOSONAR
-         }
-         else
-         {
-            throw new ExoCacheInitException(e);
-         }
+         throw new ExoCacheInitException("The configuration of the CacheManager cannot be loaded from '"
+                                             + cacheConfigTemplate + "'", e);
       }
+      if (is == null)
+      {
+         throw new ExoCacheInitException("The configuration of the CacheManager cannot be found at '"
+                                             + cacheConfigTemplate + "'");
+      }
+      GlobalConfigurationBuilder configBuilder;
+      Configuration config;
+      try
+      {
+         ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
+         // Loads the configuration from the input stream
+         ConfigurationBuilderHolder holder = parser.parse(is);
+         configBuilder = holder.getGlobalConfigurationBuilder();
+         config = holder.getDefaultConfigurationBuilder().build();
+      }
+      catch (RuntimeException e) //NOSONAR
+      {
+         throw new ExoCacheInitException("Cannot parse the configuration '" + cacheConfigTemplate + "'", e);
+      }
+      configureCacheManager(configBuilder);
+      DefaultCacheManager cacheManager;
+      try
+      {
+         // Create the CacheManager from the new configuration
+         cacheManager = new DefaultCacheManager(configBuilder.build(), config);
+      }
+      catch (RuntimeException e) //NOSONAR
+      {
+         throw new ExoCacheInitException(
+             "Cannot initialize the CacheManager corresponding to the configuration '" + cacheConfigTemplate
+                 + "'", e);
+      }
+      // Register the main cache manager
+      mappingGlobalConfigCacheManager.put(cacheManager.getCacheManagerConfiguration().transport().clusterName(),
+                                          cacheManager);
+      return cacheManager;
    }
 
    /**
@@ -330,60 +306,38 @@ public class ExoCacheFactoryImpl implements ExoCacheFactory, Startable {
          final ConfigurationBuilder confBuilder = new ConfigurationBuilder();
          if (customConfig != null)
          {
-            try
-            {
-               cacheManager =
-                  SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<DefaultCacheManager>()
-                  {
-                     public DefaultCacheManager run() throws Exception
-                     {
-                        // A custom configuration has been set
-                        if (LOG.isInfoEnabled())
-                           LOG.info("A custom configuration has been set for the cache '" + region + "'.");
-                        ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
-                        // Load the configuration
-                        ConfigurationBuilderHolder holder = parser.parse(configManager.getInputStream(customConfig));
-                        GlobalConfigurationBuilder configBuilder = holder.getGlobalConfigurationBuilder();
-                        // Configure JGroups and JMX since it could affect the state of the Global Config
-                        configureCacheManager(configBuilder);
-                        GlobalConfiguration gc = configBuilder.build();
+            // A custom configuration has been set
+            if (LOG.isInfoEnabled())
+               LOG.info("A custom configuration has been set for the cache '" + region + "'.");
+            ParserRegistry parser = new ParserRegistry(Thread.currentThread().getContextClassLoader());
+            // Load the configuration
+            ConfigurationBuilderHolder holder = parser.parse(configManager.getInputStream(customConfig));
+            GlobalConfigurationBuilder configBuilder = holder.getGlobalConfigurationBuilder();
+            // Configure JGroups and JMX since it could affect the state of the Global Config
+            configureCacheManager(configBuilder);
+            GlobalConfiguration gc = configBuilder.build();
 
-                        // Check if a CacheManager with the same GlobalConfiguration exists
-                        DefaultCacheManager currentCacheManager =
-                           mappingGlobalConfigCacheManager.get(gc.transport().clusterName());
-                        if (currentCacheManager == null)
-                        {
-                           // Use a different cache manager name to prevent naming conflict
-                           configBuilder.globalJmxStatistics().cacheManagerName(
-                              gc.globalJmxStatistics().cacheManagerName() + "_" + region + "_" + ctx.getName());
-                           // No cache manager has been defined so far for this Cache Configuration
-                           currentCacheManager =
-                              new DefaultCacheManager(configBuilder.build(), holder.getDefaultConfigurationBuilder()
-                                 .build(), false);
-                           for (Entry<String, ConfigurationBuilder> entry : holder.getNamedConfigurationBuilders().entrySet())
-                           {
-                              currentCacheManager.defineConfiguration(entry.getKey(), entry.getValue().build());
-                           }
-                           currentCacheManager.start();
-                           // We register this new cache manager
-                           mappingGlobalConfigCacheManager.put(gc.transport().clusterName(), currentCacheManager);
-                        }
-                        return currentCacheManager;
-                     }
-                  });
-            }
-            catch (PrivilegedActionException e)
+            // Check if a CacheManager with the same GlobalConfiguration exists
+            DefaultCacheManager currentCacheManager =
+                mappingGlobalConfigCacheManager.get(gc.transport().clusterName());
+            if (currentCacheManager == null)
             {
-               Throwable cause = e.getCause();
-               if (cause instanceof Exception)
+               // Use a different cache manager name to prevent naming conflict
+               configBuilder.globalJmxStatistics().cacheManagerName(
+                   gc.globalJmxStatistics().cacheManagerName() + "_" + region + "_" + ctx.getName());
+               // No cache manager has been defined so far for this Cache Configuration
+               currentCacheManager =
+                   new DefaultCacheManager(configBuilder.build(), holder.getDefaultConfigurationBuilder()
+                                                                        .build(), false);
+               for (Entry<String, ConfigurationBuilder> entry : holder.getNamedConfigurationBuilders().entrySet())
                {
-                  throw (Exception)cause;//NOSONAR
+                  currentCacheManager.defineConfiguration(entry.getKey(), entry.getValue().build());
                }
-               else
-               {
-                  throw new Exception(e);
-               }
+               currentCacheManager.start();
+               // We register this new cache manager
+               mappingGlobalConfigCacheManager.put(gc.transport().clusterName(), currentCacheManager);
             }
+            cacheManager = currentCacheManager;
             confBuilder.read(cacheManager.getDefaultCacheConfiguration());
          }
          else if (config.isDistributed())
@@ -419,32 +373,9 @@ public class ExoCacheFactoryImpl implements ExoCacheFactory, Startable {
          {
             public Cache<Serializable, Object> call() throws Exception
             {
-               try
-               {
-                  return SecurityHelper
-                     .doPrivilegedExceptionAction(new PrivilegedExceptionAction<Cache<Serializable, Object>>()
-                     {
-                        public Cache<Serializable, Object> run() throws Exception
-                        {
-                           // Define the configuration
-                           cacheManager.defineConfiguration(region, confBuilder.build());
-                           // create and start the cache                 
-                           return cacheManager.getCache(region);
-                        }
-                     });
-               }
-               catch (PrivilegedActionException e)
-               {
-                  Throwable cause = e.getCause();
-                  if (cause instanceof Exception)
-                  {
-                     throw (Exception)cause;//NOSONAR
-                  }
-                  else
-                  {
-                     throw new Exception(e);
-                  }
-               }
+               cacheManager.defineConfiguration(region, confBuilder.build());
+               // create and start the cache
+               return cacheManager.getCache(region);
             }
          });
       }

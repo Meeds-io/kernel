@@ -23,16 +23,12 @@ import org.apache.commons.chain.CatalogFactory;
 import org.apache.commons.chain.config.ConfigParser;
 import org.apache.commons.chain.impl.CatalogFactoryBase;
 import org.apache.commons.digester.Digester;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.container.spi.DefinitionByType;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Iterator;
 
 /**
@@ -57,13 +53,7 @@ public class CommandService
       this.catalogFactory = CatalogFactoryBase.getInstance();
 
       final ConfigParser parser = new ConfigParser();
-      this.digester = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Digester>()
-      {
-         public Digester run()
-         {
-            return parser.getDigester();
-         }
-      });
+      this.digester = parser.getDigester();
    }
 
    public void addPlugin(ComponentPlugin plugin)
@@ -92,44 +82,8 @@ public class CommandService
     */
    public void putCatalog(final InputStream xml) throws IOException, SAXException
    {
-      // ConfigParser parser = new ConfigParser();
-      // Prepare our Digester instance
-      // Digester digester = parser.getDigester();
       digester.clear();
-
-      try
-      {
-         SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-         {
-            public Void run() throws Exception
-            {
-               digester.parse(xml);
-               return null;
-            }
-         });
-      }
-      catch (PrivilegedActionException pae)
-      {
-         Throwable cause = pae.getCause();
-         if (cause instanceof IOException)
-         {
-            throw (IOException)cause;
-         }
-         else if (cause instanceof SAXException)
-         {
-            throw (SAXException)cause;
-         }
-         else if (cause instanceof RuntimeException)
-         {
-            throw (RuntimeException)cause;
-         }
-         else
-         {
-            throw new RuntimeException(cause);
-         }
-      }
-
-      // parser.getDigester().parse(xml);
+      digester.parse(xml);
    }
 
    /**

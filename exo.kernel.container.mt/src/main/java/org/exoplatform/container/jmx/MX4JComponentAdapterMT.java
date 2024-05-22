@@ -20,7 +20,6 @@ package org.exoplatform.container.jmx;
 
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ComponentAdapterDependenciesAware;
 import org.exoplatform.container.ComponentTask;
 import org.exoplatform.container.ComponentTaskContext;
@@ -46,7 +45,6 @@ import org.picocontainer.Startable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -368,14 +366,7 @@ public class MX4JComponentAdapterMT<T> extends MX4JComponentAdapter<T> implement
                }
                final Object[] params = {cplugin};
 
-               SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-               {
-                  public Void run() throws Exception
-                  {
-                     m.invoke(cCtx.get(), params);
-                     return null;
-                  }
-               });
+               m.invoke(cCtx.get(), params);
 
                if (debug)
                   LOG.debug("==> add component plugin: " + cplugin);

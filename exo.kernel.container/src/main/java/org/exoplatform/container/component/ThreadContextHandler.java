@@ -18,10 +18,8 @@
  */
 package org.exoplatform.container.component;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,25 +56,18 @@ public class ThreadContextHandler
          components.addAll((List<ThreadContextHolder>)current.getComponentInstancesOfType(ThreadContextHolder.class));
       }
       contexts = new ArrayList<ThreadContext>(components.size());
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      for (int i = 0, length = components.size(); i < length; i++)
       {
-         public Void run()
+         ThreadContextHolder holder = components.get(i);
+         ThreadContext tc = holder.getThreadContext();
+         if (tc == null)
          {
-            for (int i = 0, length = components.size(); i < length; i++)
-            {
-               ThreadContextHolder holder = components.get(i);
-               ThreadContext tc = holder.getThreadContext();
-               if (tc == null)
-               {
-                  // This ThreadContextHolder has nothing valuable to share so we skip it
-                  continue;
-               }
-               contexts.add(tc);
-               tc.store();
-            }
-            return null;
+            // This ThreadContextHolder has nothing valuable to share so we skip it
+            continue;
          }
-      });
+         contexts.add(tc);
+         tc.store();
+      }
    }
 
    /**
