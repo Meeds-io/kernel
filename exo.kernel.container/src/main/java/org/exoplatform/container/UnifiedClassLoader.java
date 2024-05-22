@@ -18,10 +18,8 @@
  */
 package org.exoplatform.container;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import java.io.IOException;
 import java.net.URL;
-import java.security.PrivilegedAction;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -133,12 +131,6 @@ class UnifiedClassLoader extends ClassLoader
 
    static protected UnifiedClassLoader createUnifiedClassLoaderInPrivilegedMode(final ClassLoader... cls)
    {
-      return SecurityHelper.doPrivilegedAction(new PrivilegedAction<UnifiedClassLoader>()
-      {
-         public UnifiedClassLoader run()
-         {
-            return new UnifiedClassLoader(cls);
-         }
-      });
+      return new UnifiedClassLoader(cls);
    }
 }

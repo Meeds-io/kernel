@@ -19,7 +19,6 @@
 package org.exoplatform.services.mail.impl;
 
 import java.io.InputStream;
-import java.security.PrivilegedAction;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -40,8 +39,6 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.xml.InitParams;
@@ -85,30 +82,18 @@ public class MailServiceImpl implements MailService
 
    public MailServiceImpl(InitParams params, final ExoContainerContext ctx) throws Exception
    {
-      props_ = new Properties(PrivilegedSystemHelper.getProperties());
+      props_ = new Properties(System.getProperties());
       props_.putAll(params.getPropertiesParam("config").getProperties());
       if ("true".equals(props_.getProperty("mail.smtp.auth")))
       {
          String username = props_.getProperty("mail.smtp.auth.username");
          String password = props_.getProperty("mail.smtp.auth.password");
          final ExoAuthenticator auth = new ExoAuthenticator(username, password);
-         mailSession_ = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Session>()
-         {
-            public Session run()
-            {
-               return Session.getInstance(props_, auth);
-            }
-         });
+         mailSession_ = Session.getInstance(props_, auth);
       }
       else
       {
-         mailSession_ = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Session>()
-         {
-            public Session run()
-            {
-               return Session.getInstance(props_, null);
-            }
-         });
+         mailSession_ = Session.getInstance(props_, null);
       }
       int threadNumber =
          props_.getProperty(MAX_THREAD_NUMBER) != null ? Integer.valueOf(props_.getProperty(MAX_THREAD_NUMBER))

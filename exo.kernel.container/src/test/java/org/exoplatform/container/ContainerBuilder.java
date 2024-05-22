@@ -21,14 +21,11 @@ package org.exoplatform.container;
 import junit.framework.AssertionFailedError;
 
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.commons.utils.Tools;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -142,20 +139,13 @@ public class ContainerBuilder
 
    public RootContainer build()
    {
-      PrivilegedExceptionAction<RootContainer> action = new PrivilegedExceptionAction<RootContainer>()
-      {
-         public RootContainer run() throws Exception
-         {
-            return _build();
-         }
-      };
       try
       {
-         return SecurityHelper.doPrivilegedExceptionAction(action);
+         return _build();
       }
-      catch (PrivilegedActionException pae)
+      catch (Exception e)
       {
-         Throwable cause = pae.getCause();
+         Throwable cause = e.getCause();
          AssertionFailedError err = new AssertionFailedError();
          err.initCause(cause);
          throw err;

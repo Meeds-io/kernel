@@ -18,8 +18,6 @@
  */
 package org.exoplatform.commons;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
-
 public class Environment
 {
 
@@ -43,12 +41,12 @@ public class Environment
 
    private Environment()
    {
-      String catalinaHome = PrivilegedSystemHelper.getProperty("catalina.home");
-      String jbossHome = PrivilegedSystemHelper.getProperty("jboss.home.dir");
-      String jettyHome = PrivilegedSystemHelper.getProperty("jetty.home");
-      String websphereHome = PrivilegedSystemHelper.getProperty("was.install.root");
-      String weblogicHome = PrivilegedSystemHelper.getProperty("weblogic.Name");
-      String standAlone = PrivilegedSystemHelper.getProperty("maven.exoplatform.dir");
+      String catalinaHome = System.getProperty("catalina.home");
+      String jbossHome = System.getProperty("jboss.home.dir");
+      String jettyHome = System.getProperty("jetty.home");
+      String websphereHome = System.getProperty("was.install.root");
+      String weblogicHome = System.getProperty("weblogic.Name");
+      String standAlone = System.getProperty("maven.exoplatform.dir");
       if (jbossHome != null)
       {
          platform_ = JBOSS_PLATFORM;

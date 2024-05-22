@@ -78,7 +78,7 @@ public class PropertyManager
             String propertyValue = cache.get(propertyName);
             if (propertyValue == null)
             {
-               propertyValue = PrivilegedSystemHelper.getProperty(propertyName);
+               propertyValue = System.getProperty(propertyName);
                if (propertyValue != null)
                {
                   cache.put(propertyName, propertyValue);
@@ -89,7 +89,7 @@ public class PropertyManager
       }
       else
       {
-         return PrivilegedSystemHelper.getProperty(propertyName);
+         return System.getProperty(propertyName);
       }
    }
 
@@ -102,7 +102,7 @@ public class PropertyManager
    public static Properties getPropertiesByPattern(String propertyPattern)
    {
       Properties props = new Properties();
-      Map<String, String> map = (PrivilegedSystemHelper.getProperties().entrySet()).stream().filter(p -> p.getKey().toString().matches(propertyPattern)).collect(Collectors.toMap(p -> p.getKey().toString(), p -> p.getValue().toString()));
+      Map<String, String> map = (System.getProperties().entrySet()).stream().filter(p -> p.getKey().toString().matches(propertyPattern)).collect(Collectors.toMap(p -> p.getKey().toString(), p -> p.getValue().toString()));
       map.forEach((k,v)->{
          props.setProperty(k,v);
       });
@@ -116,7 +116,7 @@ public class PropertyManager
     */
    public static Properties getProperties()
    {
-      return PrivilegedSystemHelper.getProperties();
+      return System.getProperties();
    }
 
    /**
@@ -138,7 +138,7 @@ public class PropertyManager
 
    private static boolean internalIsDevelopping()
    {
-      return "true".equals(PrivilegedSystemHelper.getProperty(DEVELOPING, "false"));
+      return "true".equals(System.getProperty(DEVELOPING, "false"));
    }
 
    /**
@@ -149,7 +149,7 @@ public class PropertyManager
     */
    public synchronized static void setProperty(String propertyName, String propertyValue)
    {
-      PrivilegedSystemHelper.setProperty(propertyName, propertyValue);
+      System.setProperty(propertyName, propertyValue);
 
       // Remove instead of put to avoid concurrent race
       cache.remove(propertyName);

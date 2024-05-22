@@ -18,12 +18,9 @@
  */
 package org.exoplatform.services.net.impl;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.services.net.NetService;
 
 import java.net.Socket;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 
 /**
  * Created by The eXo Platform SAS Author : HoaPham phamvuxuanhoa@yahoo.com Jan
@@ -36,24 +33,10 @@ public class NetServiceImpl implements NetService
    {
       long startTime = 0;
       long endTime = 0;
-      try
-      {
-         startTime = System.currentTimeMillis();
-         Socket socket = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Socket>()
-         {
-            public Socket run() throws Exception
-            {
-               return new Socket(host, port);
-            }
-         });
-         endTime = System.currentTimeMillis();
-         socket.close();
-      }
-      catch (PrivilegedActionException e)
-      {
-         // e.printStackTrace() ;
-         return -1;
-      }
+      startTime = System.currentTimeMillis();
+      Socket socket = new Socket(host, port);
+      endTime = System.currentTimeMillis();
+      socket.close();
       return endTime - startTime;
    }
 }

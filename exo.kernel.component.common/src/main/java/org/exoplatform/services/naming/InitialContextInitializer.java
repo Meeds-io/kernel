@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.naming;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.container.configuration.ConfigurationException;
 import org.exoplatform.container.xml.InitParams;
@@ -54,7 +53,7 @@ import javax.xml.stream.XMLStreamException;
 public class InitialContextInitializer
 {
 
-   static String DEFAULT_INITIAL_CONTEXT_FACTORY = PrivilegedSystemHelper.getProperty(Context.INITIAL_CONTEXT_FACTORY);
+   static String DEFAULT_INITIAL_CONTEXT_FACTORY = System.getProperty(Context.INITIAL_CONTEXT_FACTORY);
    
    public static final String PROPERTIES_DEFAULT = "default-properties";
 
@@ -67,7 +66,7 @@ public class InitialContextInitializer
 
    public static final String BINDINGS_STORE_PATH = "bindings-store-path";
 
-   public static final String DEFAULT_BINDING_STORE_PATH = PrivilegedSystemHelper.getProperty("java.io.tmpdir")
+   public static final String DEFAULT_BINDING_STORE_PATH = System.getProperty("java.io.tmpdir")
       + File.separator + "bind-references.xml";
 
    private static final Log LOG = ExoLogger.getLogger("exo.kernel.component.common.InitialContextInitializer");
@@ -97,7 +96,7 @@ public class InitialContextInitializer
             Property prop = (Property)props.next();
             String propName = prop.getName();
             String propValue = prop.getValue();
-            String existedProp = PrivilegedSystemHelper.getProperty(propName);
+            String existedProp = System.getProperty(propName);
             if (isMandatory)
             {
                setSystemProperty(propName, propValue, propParam.getName());
@@ -127,7 +126,7 @@ public class InitialContextInitializer
       if (overloadContextFactoryParam != null && overloadContextFactoryParam.getValue() != null
          && Boolean.valueOf(overloadContextFactoryParam.getValue()))
       {
-         PrivilegedSystemHelper
+         System
             .setProperty(Context.INITIAL_CONTEXT_FACTORY, ExoContainerContextFactory.class.getName());
 
       }
@@ -145,19 +144,19 @@ public class InitialContextInitializer
 
    private void setSystemProperty(String propName, String propValue, String propParamName)
    {
-      PrivilegedSystemHelper.setProperty(propName, propValue);
+      System.setProperty(propName, propValue);
       if (propName.equals(Context.INITIAL_CONTEXT_FACTORY))
       {
-         DEFAULT_INITIAL_CONTEXT_FACTORY = PrivilegedSystemHelper.getProperty(Context.INITIAL_CONTEXT_FACTORY);
+         DEFAULT_INITIAL_CONTEXT_FACTORY = System.getProperty(Context.INITIAL_CONTEXT_FACTORY);
       }
-      LOG.info("Using mandatory system property: " + propName + " = " + PrivilegedSystemHelper.getProperty(propName));
+      LOG.info("Using mandatory system property: " + propName + " = " + System.getProperty(propName));
    }
 
    // for out-of-container testing
    private InitialContextInitializer(String name, Reference reference) throws NamingException, FileNotFoundException,
       XMLStreamException
    {
-      PrivilegedSystemHelper.setProperty(Context.INITIAL_CONTEXT_FACTORY, DEFAULT_INITIAL_CONTEXT_FACTORY);
+      System.setProperty(Context.INITIAL_CONTEXT_FACTORY, DEFAULT_INITIAL_CONTEXT_FACTORY);
       InitialContext initialContext = getInitialContext();
       initialContext.rebind(name, reference);
 

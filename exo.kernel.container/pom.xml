@@ -102,7 +102,6 @@
       <dependency>
          <groupId>org.javassist</groupId>
          <artifactId>javassist</artifactId>
-         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>ch.qos.logback</groupId>
@@ -111,12 +110,6 @@
    </dependencies>
    <build>
       <plugins>
-         <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>@{argLine} -Djava.security.manager=org.exoplatform.commons.test.TestSecurityManager -Djava.security.policy=${project.build.directory}/test-classes/test.policy</argLine>
-            </configuration>
-         </plugin>
          <plugin>
             <groupId>org.jibx</groupId>
             <artifactId>maven-jibx-plugin</artifactId>

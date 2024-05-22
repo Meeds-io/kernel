@@ -19,7 +19,6 @@
 package org.exoplatform.services.rpc.impl;
 
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.configuration.ConfigurationManager;
@@ -51,9 +50,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.net.URL;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -220,17 +216,11 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
 
       try
       {
-         this.configurator = SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<ProtocolStackConfigurator>()
-         {
-            public ProtocolStackConfigurator run() throws Exception
-            {
-               return ConfiguratorFactory.getStackConfigurator(properties);
-            }
-         });
+         this.configurator = ConfiguratorFactory.getStackConfigurator(properties);
       }
-      catch (PrivilegedActionException pae)
+      catch (Exception e)
       {
-         throw new RuntimeException("Cannot load the JGroups configuration from " + properties, pae.getCause());
+         throw new RuntimeException("Cannot load the JGroups configuration from " + properties, e.getCause());
       }
 
       this.clusterName = getClusterName(ctx, params);
@@ -395,11 +385,6 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
    protected List<Object> excecuteCommand(final List<Address> dests, RemoteCommand command,
       final boolean synchronous, final long timeout, Serializable... args) throws RPCException
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
       if (state != State.STARTED)
       {
          throw new RPCException(
@@ -412,21 +397,15 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
       }
       final Message msg = new Message();
       setObject(msg, new MessageBody(dests.size() == 1 && dests != members ? dests.get(0) : null, commandId, args)); //NOSONAR
-      RspList rsps = SecurityHelper.doPrivilegedAction(new PrivilegedAction<RspList>()
+      RspList rsps = null;
+      try
       {
-         public RspList run()
-         {
-            try
-            {
-               return castMessage(dests, msg, synchronous, timeout);
-            }
-            catch (Exception e)
-            {
-               LOG.error("Could not cast the message corresponding to the command " + commandId + ".", e);
-            }
-            return null;
-         }
-      });
+         rsps = castMessage(dests, msg, synchronous, timeout);
+      }
+      catch (Exception e)
+      {
+         LOG.error("Could not cast the message corresponding to the command " + commandId + ".", e);
+      }
 
       if (LOG.isTraceEnabled())
          LOG.trace("responses: " + rsps);
@@ -570,11 +549,6 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public synchronized RemoteCommand registerCommand(RemoteCommand command)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
       if (command != null)
       {
          String commandId = command.getId();
@@ -600,11 +574,6 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public synchronized void unregisterCommand(RemoteCommand command)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
       if (command != null)
       {
          String commandId = command.getId();
@@ -648,11 +617,6 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public void registerTopologyChangeListener(TopologyChangeListener listener) throws SecurityException
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
       if (listener == null)
       {
          return;
@@ -665,11 +629,6 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public void unregisterTopologyChangeListener(TopologyChangeListener listener) throws SecurityException
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
       if (listener == null)
       {
          return;
@@ -692,28 +651,15 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public void start()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
-
       try
       {
-         SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-         {
-            public Void run() throws Exception
-            {
-               channel = createChannel();
-               dispatcher = new MessageDispatcher(channel, null, AbstractRPCService.this, AbstractRPCService.this);
-               channel.connect(clusterName);
-               return null;
-            }
-         });
+         channel = createChannel();
+         dispatcher = new MessageDispatcher(channel, null, AbstractRPCService.this, AbstractRPCService.this);
+         channel.connect(clusterName);
       }
-      catch (PrivilegedActionException pae)
+      catch (Exception e)
       {
-         throw new RuntimeException("Cannot initialize the Channel needed for the RPCServiceImpl", pae.getCause());
+         throw new RuntimeException("Cannot initialize the Channel needed for the RPCServiceImpl", e.getCause());
       }
       finally
       {
@@ -727,27 +673,14 @@ public abstract class AbstractRPCService implements RPCService, Startable, Reque
     */
    public void stop()
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-      {
-         security.checkPermission(RPCService.ACCESS_RPC_SERVICE_PERMISSION);
-      }
-
       this.state = State.STOPPED;
       this.isCoordinator = false;
       if (channel != null && channel.isOpen())
       {
          if (LOG.isInfoEnabled())
             LOG.info("Disconnecting and closing the Channel");
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-         {
-            public Void run()
-            {
-               channel.disconnect();
-               channel.close();
-               return null;
-            }
-         });
+         channel.disconnect();
+         channel.close();
          channel = null;
       }
       if (dispatcher != null)

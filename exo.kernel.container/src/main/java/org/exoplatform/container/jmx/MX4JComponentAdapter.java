@@ -21,7 +21,6 @@ package org.exoplatform.container.jmx;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import org.exoplatform.commons.utils.ClassLoading;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.AbstractComponentAdapter;
 import org.exoplatform.container.ConcurrentContainer;
 import org.exoplatform.container.ConcurrentContainer.CreationalContextComponentAdapter;
@@ -44,8 +43,6 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.reflect.Method;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -264,86 +261,68 @@ public class MX4JComponentAdapter<T> extends AbstractComponentAdapter<T> impleme
       final ConfigurationManager manager, final String componentKey, final InitParams params, final boolean debug)
       throws Exception
    {
-      try
+      T instance;
+      final Class<T> implementationClass = getComponentImplementation();
+      // Please note that we cannot fully initialize the Object "instance_" before releasing other
+      // threads because it could cause StackOverflowError due to recursive calls
+      instance = exocontainer.createComponent(implementationClass, params);
+      if (instance_ != null)
       {
-         return SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<T>()
-         {
-            public T run() throws Exception
-            {
-               T instance;
-               final Class<T> implementationClass = getComponentImplementation();
-               // Please note that we cannot fully initialize the Object "instance_" before releasing other
-               // threads because it could cause StackOverflowError due to recursive calls
-               instance = exocontainer.createComponent(implementationClass, params);
-               if (instance_ != null)
-               {
-                  // Avoid instantiating twice the same component in case of a cyclic reference due
-                  // to component plugins
-                  return instance_;
-               }
-               else if (ctx.get() != null)
-                  return ctx.get();
+         // Avoid instantiating twice the same component in case of a cyclic reference due
+         // to component plugins
+         return instance_;
+      }
+      else if (ctx.get() != null)
+         return ctx.get();
 
-               ctx.push(instance);
-               boolean isSingleton = MX4JComponentAdapter.this.isSingleton;
-               boolean isInitialized = MX4JComponentAdapter.this.isInitialized;
-               if (debug)
-                  LOG.debug("==> create  component : " + instance);
-               boolean hasInjectableConstructor =
-                  !isSingleton || ContainerUtil.hasInjectableConstructor(implementationClass);
-               boolean hasOnlyEmptyPublicConstructor =
-                  !isSingleton || ContainerUtil.hasOnlyEmptyPublicConstructor(implementationClass);
-               if (hasInjectableConstructor || hasOnlyEmptyPublicConstructor)
-               {
-                  // There is at least one constructor JSR 330 compliant or we already know 
-                  // that it is not a singleton such that the new behavior is expected
-                  boolean isInjectPresent = container.initializeComponent(instance);
-                  isSingleton = manageScope(isSingleton, isInitialized, hasInjectableConstructor, isInjectPresent);
-               }
-               else if (!isInitialized)
-               {
-                  // The adapter has not been initialized yet
-                  // The old behavior is expected as there is no constructor JSR 330 compliant 
-                  isSingleton = MX4JComponentAdapter.this.isSingleton = true;
-                  scope.set(Singleton.class);
-               }
-               if (component != null && component.getComponentPlugins() != null)
-               {
-                  addComponentPlugin(debug, instance, component.getComponentPlugins(), exocontainer);
-               }
-               ExternalComponentPlugins ecplugins =
-                  manager == null ? null : manager.getConfiguration().getExternalComponentPlugins(componentKey);
-               if (ecplugins != null)
-               {
-                  addComponentPlugin(debug, instance, ecplugins.getComponentPlugins(), exocontainer);
-               }
-               // check if component implement the ComponentLifecycle
-               if (instance instanceof ComponentLifecycle)
-               {
-                  ComponentLifecycle lc = (ComponentLifecycle)instance;
-                  lc.initComponent(exocontainer);
-               }
-               if (!isInitialized)
-               {
-                  if (isSingleton)
-                  {
-                     instance_ = instance;
-                  }
-                  MX4JComponentAdapter.this.isInitialized = true;
-               }
-               return instance;
-            }
-         });
-      }
-      catch (PrivilegedActionException e)
+      ctx.push(instance);
+      boolean isSingleton = MX4JComponentAdapter.this.isSingleton;
+      boolean isInitialized = MX4JComponentAdapter.this.isInitialized;
+      if (debug)
+         LOG.debug("==> create  component : " + instance);
+      boolean hasInjectableConstructor =
+          !isSingleton || ContainerUtil.hasInjectableConstructor(implementationClass);
+      boolean hasOnlyEmptyPublicConstructor =
+          !isSingleton || ContainerUtil.hasOnlyEmptyPublicConstructor(implementationClass);
+      if (hasInjectableConstructor || hasOnlyEmptyPublicConstructor)
       {
-         Throwable cause = e.getCause();
-         if (cause instanceof Exception)
-         {
-            throw (Exception)cause;
-         }
-         throw new Exception(cause);
+         // There is at least one constructor JSR 330 compliant or we already know
+         // that it is not a singleton such that the new behavior is expected
+         boolean isInjectPresent = container.initializeComponent(instance);
+         isSingleton = manageScope(isSingleton, isInitialized, hasInjectableConstructor, isInjectPresent);
       }
+      else if (!isInitialized)
+      {
+         // The adapter has not been initialized yet
+         // The old behavior is expected as there is no constructor JSR 330 compliant
+         isSingleton = MX4JComponentAdapter.this.isSingleton = true;
+         scope.set(Singleton.class);
+      }
+      if (component != null && component.getComponentPlugins() != null)
+      {
+         addComponentPlugin(debug, instance, component.getComponentPlugins(), exocontainer);
+      }
+      ExternalComponentPlugins ecplugins =
+          manager == null ? null : manager.getConfiguration().getExternalComponentPlugins(componentKey);
+      if (ecplugins != null)
+      {
+         addComponentPlugin(debug, instance, ecplugins.getComponentPlugins(), exocontainer);
+      }
+      // check if component implement the ComponentLifecycle
+      if (instance instanceof ComponentLifecycle)
+      {
+         ComponentLifecycle lc = (ComponentLifecycle)instance;
+         lc.initComponent(exocontainer);
+      }
+      if (!isInitialized)
+      {
+         if (isSingleton)
+         {
+            instance_ = instance;
+         }
+         MX4JComponentAdapter.this.isInitialized = true;
+      }
+      return instance;
    }
 
    /**
@@ -379,14 +358,7 @@ public class MX4JComponentAdapter<T> extends AbstractComponentAdapter<T> impleme
             }
             final Object[] params = {cplugin};
 
-            SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<Void>()
-            {
-               public Void run() throws Exception
-               {
-                  m.invoke(component, params);
-                  return null;
-               }
-            });
+            m.invoke(component, params);
 
             if (debug)
                LOG.debug("==> add component plugin: " + cplugin);

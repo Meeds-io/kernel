@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.compress;
 
-import org.exoplatform.commons.utils.PrivilegedFileHelper;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
@@ -77,7 +76,7 @@ public class CompressData
    {
       try
       {
-         InputStream is = PrivilegedFileHelper.fileInputStream(file);
+         InputStream is = new FileInputStream(file);
          datas_.add(new InputStreamDataInstance(entryName, is));
       }
       catch (FileNotFoundException e)
@@ -107,7 +106,7 @@ public class CompressData
    public void createZipFile(String fileName) throws Exception
    {
       File fileZip = new File(fileName + ".zip");
-      FileOutputStream out = PrivilegedFileHelper.fileOutputStream(fileZip);
+      FileOutputStream out = new FileOutputStream(fileZip);
       ZipOutputStream zos = new ZipOutputStream(out);
       int size = datas_.size();
       byte InputData[] = new byte[BUFFER];
@@ -179,7 +178,7 @@ public class CompressData
    public void createJarFile(String fileName) throws Exception
    {
       File fileZip = new File(fileName + ".jar");
-      FileOutputStream out = PrivilegedFileHelper.fileOutputStream(fileZip);
+      FileOutputStream out = new FileOutputStream(fileZip);
       JarOutputStream jos = new JarOutputStream(out);
       int size = datas_.size();
       if (size < 0)
@@ -376,7 +375,7 @@ public class CompressData
 
             if (f.isFile())
             {
-               bufInput = PrivilegedFileHelper.fileInputStream(f);
+               bufInput = new FileInputStream(f);
             }
             else
             {

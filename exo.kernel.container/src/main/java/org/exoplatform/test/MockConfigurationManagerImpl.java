@@ -18,13 +18,10 @@
  */
 package org.exoplatform.test;
 
-import org.exoplatform.commons.utils.PrivilegedSystemHelper;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.configuration.ConfigurationManagerImpl;
 
 import java.net.URL;
-import java.security.PrivilegedAction;
 
 import jakarta.servlet.ServletContext;
 
@@ -42,7 +39,7 @@ public class MockConfigurationManagerImpl extends ConfigurationManagerImpl
    public MockConfigurationManagerImpl(ServletContext context) throws Exception
    {
       super(context, ExoContainer.getProfilesFromProperty());
-      confDir_ = PrivilegedSystemHelper.getProperty("mock.portal.dir") + "/WEB-INF";
+      confDir_ = System.getProperty("mock.portal.dir") + "/WEB-INF";
    }
 
    @Override
@@ -57,13 +54,7 @@ public class MockConfigurationManagerImpl extends ConfigurationManagerImpl
          }
          final ClassLoader cl = Thread.currentThread().getContextClassLoader();
          final String finalPath = path;
-         return SecurityHelper.doPrivilegedAction(new PrivilegedAction<URL>()
-         {
-            public URL run()
-            {
-               return cl.getResource(finalPath);
-            }
-         });
+         return cl.getResource(finalPath);
       }
       else if (uri.startsWith("classpath:"))
       {
@@ -72,7 +63,7 @@ public class MockConfigurationManagerImpl extends ConfigurationManagerImpl
          {
             path = path.substring(1);
          }
-         return PrivilegedSystemHelper.getResource(path);
+         return Thread.currentThread().getContextClassLoader().getResource(path);
       }
       else if (uri.startsWith("war:"))
       {

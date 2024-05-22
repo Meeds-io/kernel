@@ -24,8 +24,6 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.io.*;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,23 +42,16 @@ public class MimeTypeResolver
 
 
    static {
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      String mimeCacheFile = PropertyManager.getProperty(MIME_CACHE);
+      if (mimeCacheFile != null && !mimeCacheFile.isEmpty())
       {
-         public Void run()
-         {
-            String mimeCacheFile = PropertyManager.getProperty(MIME_CACHE);
-            if (mimeCacheFile != null && !mimeCacheFile.isEmpty())
-            {
-               new eu.medsea.mimeutil.detector.OpendesktopMimeDetector(mimeCacheFile);
-               MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.OpendesktopMimeDetector");
-            }
-            else
-            {
-               MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
-            }
-            return null;
-         }
-      });
+         new eu.medsea.mimeutil.detector.OpendesktopMimeDetector(mimeCacheFile);
+         MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.OpendesktopMimeDetector");
+      }
+      else
+      {
+         MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+      }
    }
 
    private Map<String, List<String>> mimeTypes = new HashMap<String, List<String>>();
@@ -73,47 +64,32 @@ public class MimeTypeResolver
 
    public MimeTypeResolver()
    {
+      Scanner scanner = null;
+      String mimeTypeProperties = System.getProperty(MIMETYPES_FILE_PATH);
+      if (mimeTypeProperties != null) {
+         File mimeTypesFile = new File(mimeTypeProperties);
+         try {
+            InputStream stream = new FileInputStream(mimeTypesFile);
+            scanner = new Scanner(stream, "ISO-8859-1");
+         } catch (FileNotFoundException fileNotFoundException) {
+            // Failed to load the file, we skip to the next try
+            LOG.debug("File Not found {}", mimeTypeProperties, fileNotFoundException);
+         }
+      }
+      if (scanner == null)
+      {
+         scanner = new Scanner(getClass().getResourceAsStream("mimetypes.properties"), "ISO-8859-1");
+      }
       try
       {
-         SecurityHelper.doPrivilegedIOExceptionAction(new PrivilegedExceptionAction<Void>()
+         while (scanner.hasNextLine())
          {
-            public Void run() throws Exception
-            {
-               Scanner scanner = null;
-               String mimeTypeProperties = System.getProperty(MIMETYPES_FILE_PATH);
-               if (mimeTypeProperties != null) {
-                  File mimeTypesFile = new File(mimeTypeProperties);
-                  try {
-                     InputStream stream = new FileInputStream(mimeTypesFile);
-                     scanner = new Scanner(stream, "ISO-8859-1");
-                  } catch (FileNotFoundException fileNotFoundException) {
-                     // Failed to load the file, we skip to the next try
-                     LOG.debug("File Not found {}", mimeTypeProperties, fileNotFoundException);
-                  }
-               }
-               if (scanner == null)
-               {
-                  scanner = new Scanner(getClass().getResourceAsStream("mimetypes.properties"), "ISO-8859-1");
-               }
-               try
-               {
-                  while (scanner.hasNextLine())
-                  {
-                     processLine(scanner.nextLine());
-                  }
-               }
-               finally
-               {
-                  scanner.close();
-               }
-
-               return null;
-            }
-         });
+            processLine(scanner.nextLine());
+         }
       }
-      catch (IOException e)
+      finally
       {
-         throw new InternalError("Unable to load mimetypes: " + e.toString());
+         scanner.close();
       }
    }
 

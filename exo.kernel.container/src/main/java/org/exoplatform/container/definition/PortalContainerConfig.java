@@ -18,14 +18,12 @@
  */
 package org.exoplatform.container.definition;
 
-import org.exoplatform.commons.utils.PrivilegedFileHelper;
 import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.PropertyConfigurator;
 import org.exoplatform.container.RootContainer;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.monitor.jvm.J2EEServerInfo;
-import org.exoplatform.container.security.ContainerPermissions;
 import org.exoplatform.container.util.ContainerUtil;
 import org.exoplatform.container.xml.Deserializer;
 import org.exoplatform.container.xml.InitParams;
@@ -381,10 +379,6 @@ public class PortalContainerConfig implements Startable
     */
    public synchronized void disablePortalContainer(String name)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);     
-      
       if (!portalContainerNamesDisabled.contains(name))
       {
          if (PropertyManager.isDevelopping())
@@ -447,10 +441,6 @@ public class PortalContainerConfig implements Startable
     */
    public synchronized void registerPortalContainerName(String name)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);     
-      
       if (!portalContainerNames.contains(name) && !portalContainerNamesDisabled.contains(name))
       {
          final List<String> lPortalContainerNames = new ArrayList<String>(portalContainerNames.size() + 1);
@@ -466,10 +456,6 @@ public class PortalContainerConfig implements Startable
     */
    public synchronized void unregisterPortalContainerName(String name)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);     
-      
       if (portalContainerNames.contains(name))
       {
          final List<String> lPortalContainerNames = new ArrayList<String>(portalContainerNames);
@@ -1001,7 +987,7 @@ public class PortalContainerConfig implements Startable
                serverInfo.getExoConfigurationDirectory() + "/portal/" + (isPath4DefaultPCD ? "" : def.getName() + "/")
                   + path;
             File file = new File(fullPath);
-            if (PrivilegedFileHelper.exists(file))
+            if (file.exists())
             {
                // The file exists so we will use it
                url = file.toURI().toURL();

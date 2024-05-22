@@ -231,10 +231,6 @@ public class ConcurrentContainer extends AbstractInterceptor
     */
    protected ComponentAdapter<?> registerComponent(ComponentAdapter<?> componentAdapter) throws ContainerException
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_COMPONENT_PERMISSION);
-
       Object componentKey = componentAdapter.getComponentKey();
       if (componentKeyToAdapterCache.putIfAbsent(componentKey, componentAdapter) != null)
       {
@@ -246,10 +242,6 @@ public class ConcurrentContainer extends AbstractInterceptor
 
    public ComponentAdapter<?> unregisterComponent(Object componentKey)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_COMPONENT_PERMISSION);
-
       ComponentAdapter<?> adapter = componentKeyToAdapterCache.remove(componentKey);
       if (adapter instanceof InstanceComponentAdapter)
       {

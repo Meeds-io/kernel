@@ -18,7 +18,6 @@
  */
 package org.exoplatform.services.cache.impl.infinispan.distributed;
 
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.management.annotations.Managed;
@@ -56,7 +55,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -199,19 +197,9 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
     */
    public void clearCache()
    {
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-
-         @Override
-         public Void run()
-         {
-            MapReduceTask<CacheKey<K>, V, Void, Void> task = new MapReduceTask<CacheKey<K>, V, Void, Void>(cache);
-            task.mappedWith(new ClearCacheMapper<K, V>(fullName)).reducedWith(new ClearCacheReducer());
-            task.execute();
-            return null;
-         }
-
-      });
+      MapReduceTask<CacheKey<K>, V, Void, Void> task = new MapReduceTask<CacheKey<K>, V, Void, Void>(cache);
+      task.mappedWith(new ClearCacheMapper<K, V>(fullName)).reducedWith(new ClearCacheReducer());
+      task.execute();
       onClearCache();
    }
 
@@ -227,16 +215,7 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
       }
       @SuppressWarnings("rawtypes")
       final CacheKey key = new CacheKey<Serializable>(fullName, name);
-      final V result = SecurityHelper.doPrivilegedAction(new PrivilegedAction<V>()
-      {
-
-         @Override
-         public V run()
-         {
-            return cache.get(key);
-         }
-
-      });
+      final V result = cache.get(key);
       if (result == null)
       {
          misses.incrementAndGet();
@@ -270,19 +249,9 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
     */
    public int getCacheSize()
    {
-      Map<String, Integer> map = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Map<String, Integer>>()
-      {
-
-         @Override
-         public Map<String, Integer> run()
-         {
-            MapReduceTask<CacheKey<K>, V, String, Integer> task =
-               new MapReduceTask<CacheKey<K>, V, String, Integer>(cache);
-            task.mappedWith(new GetSizeMapper<K, V>(fullName)).reducedWith(new GetSizeReducer<String>());
-            return task.execute();
-         }
-
-      });
+      MapReduceTask<CacheKey<K>, V, String, Integer> task = new MapReduceTask<CacheKey<K>, V, String, Integer>(cache);
+      task.mappedWith(new GetSizeMapper<K, V>(fullName)).reducedWith(new GetSizeReducer<String>());
+      Map<String, Integer> map = task.execute();
       int sum = 0;
       for (Integer i : map.values())
       {
@@ -296,20 +265,11 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
     */
    public List<V> getCachedObjects()
    {
-      Map<String, List<V>> map = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Map<String, List<V>>>()
-      {
-
-         @Override
-         public Map<String, List<V>> run()
-         {
-            MapReduceTask<CacheKey<K>, V, String, List<V>> task =
-               new MapReduceTask<CacheKey<K>, V, String, List<V>>(cache);
-            task.mappedWith(new GetCachedObjectsMapper<K, V>(fullName)).reducedWith(
-               new GetCachedObjectsReducer<String, V>());
-            return task.execute();
-         }
-
-      });
+      MapReduceTask<CacheKey<K>, V, String, List<V>> task =
+          new MapReduceTask<CacheKey<K>, V, String, List<V>>(cache);
+      task.mappedWith(new GetCachedObjectsMapper<K, V>(fullName)).reducedWith(
+          new GetCachedObjectsReducer<String, V>());
+      Map<String, List<V>> map = task.execute();
       List<V> result = new ArrayList<V>();
       for (List<V> vals : map.values())
       {
@@ -372,17 +332,7 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
          // ignore null values
          return;
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-
-         @Override
-         public Void run()
-         {
-            putOnly(key, value);
-            return null;
-         }
-
-      });
+      putOnly(key, value);
       onPut(key, value);
    }
 
@@ -410,39 +360,30 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
             throw new IllegalArgumentException("No null cache key accepted");
          }
       }
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      // Start transaction
+      cache.startBatch();
+      try
       {
-
-         @Override
-         public Void run()
+         // Wrap the key into a CacheKey and make sure that the key and the value
+         // are valid
+         Map<CacheKey<K>, V> map = new LinkedHashMap<CacheKey<K>, V>();
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
          {
-            // Start transaction
-            cache.startBatch();
-            try
-            {
-               // Wrap the key into a CacheKey and make sure that the key and the value
-               // are valid
-               Map<CacheKey<K>, V> map = new LinkedHashMap<CacheKey<K>, V>();
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  map.put(new CacheKey<K>(fullName, entry.getKey()), entry.getValue());
-               }
-               cache.putAll(map);
-               cache.endBatch(true);
-               // End transaction
-               for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
-               {
-                  onPut(entry.getKey(), entry.getValue());
-               }
-            }
-            catch (Exception e)//NOSONAR
-            {
-               cache.endBatch(false);
-               LOG.warn("An error occurs while executing the putMap method", e);
-            }
-            return null;
+            map.put(new CacheKey<K>(fullName, entry.getKey()), entry.getValue());
          }
-      });
+         cache.putAll(map);
+         cache.endBatch(true);
+         // End transaction
+         for (Map.Entry<? extends K, ? extends V> entry : objs.entrySet())
+         {
+            onPut(entry.getKey(), entry.getValue());
+         }
+      }
+      catch (Exception e)//NOSONAR
+      {
+         cache.endBatch(false);
+         LOG.warn("An error occurs while executing the putMap method", e);
+      }
    }
 
    /**
@@ -457,14 +398,7 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
       }
       @SuppressWarnings("rawtypes")
       final CacheKey key = new CacheKey<Serializable>(fullName, name);
-      V result = SecurityHelper.doPrivilegedAction(new PrivilegedAction<V>()
-      {
-         @Override
-         public V run()
-         {
-            return cache.remove(key);
-         }
-      });
+      V result = cache.remove(key);
       onRemove(key, result);
       return result;
    }
@@ -488,18 +422,9 @@ public class DistributedExoCache<K extends Serializable, V> implements ExoCache<
       {
          throw new IllegalArgumentException("No null selector");
       }
-      Map<K, V> map = SecurityHelper.doPrivilegedAction(new PrivilegedAction<Map<K, V>>()
-      {
-
-         @Override
-         public Map<K, V> run()
-         {
-            MapReduceTask<CacheKey<K>, V, K, V> task = new MapReduceTask<CacheKey<K>, V, K, V>(cache);
-            task.mappedWith(new GetEntriesMapper<K, V>(fullName)).reducedWith(new GetEntriesReducer<K, V>());
-            return task.execute();
-         }
-
-      });
+      MapReduceTask<CacheKey<K>, V, K, V> task = new MapReduceTask<CacheKey<K>, V, K, V>(cache);
+      task.mappedWith(new GetEntriesMapper<K, V>(fullName)).reducedWith(new GetEntriesReducer<K, V>());
+      Map<K, V> map = task.execute();
 
       for (K key : map.keySet())
       {

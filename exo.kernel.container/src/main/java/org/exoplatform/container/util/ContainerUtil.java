@@ -24,7 +24,6 @@ import javassist.util.proxy.ProxyFactory;
 
 import org.exoplatform.commons.utils.ClassLoading;
 import org.exoplatform.commons.utils.PropertiesLoader;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.commons.utils.Tools;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.configuration.ConfigurationManager;
@@ -44,8 +43,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -279,13 +276,7 @@ public class ContainerUtil
    {
       final ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
-      Collection c = SecurityHelper.doPrivilegedIOExceptionAction(new PrivilegedExceptionAction<Collection>()
-      {
-         public Collection run() throws IOException
-         {
-            return Collections.list(cl.getResources(configuration));
-         }
-      });
+      Collection c = Collections.list(cl.getResources(configuration));
 
       Map<String, URL> map = new LinkedHashMap<>();
       Iterator i = c.iterator();
@@ -511,56 +502,31 @@ public class ContainerUtil
    public static <T> T createProxy(final Class<T> superClass, final Provider<T> provider)
       throws UnproxyableResolutionException
    {
-      PrivilegedExceptionAction<T> action = new PrivilegedExceptionAction<T>()
+      Method[] methods = superClass.getDeclaredMethods();
+      for (int i = 0; i < methods.length; i++)
       {
-
-         public T run() throws Exception
+         Method m = methods[i];
+         int modifiers = m.getModifiers();
+         if (Modifier.isFinal(modifiers) && !Modifier.isPrivate(modifiers) && !Modifier.isStatic(modifiers))
          {
-            // We first make sure that there is no non-static, final methods with public, protected or default visibility
-            Method[] methods = superClass.getDeclaredMethods();
-            for (int i = 0; i < methods.length; i++)
-            {
-               Method m = methods[i];
-               int modifiers = m.getModifiers();
-               if (Modifier.isFinal(modifiers) && !Modifier.isPrivate(modifiers) && !Modifier.isStatic(modifiers))
-               {
-                  throw new UnproxyableResolutionException(
-                     "Cannot create a proxy for the class "
-                        + superClass.getName()
-                        + " because it has at least one non-static, final method with public, protected or default visibility");
-               }
-            }
-            try
-            {
-               ProxyFactory factory = new ProxyFactory();
-               factory.setSuperclass(superClass);
-               factory.setFilter(MethodFilterHolder.METHOD_FILTER);
-               MethodHandler handler = new ProxyMethodHandler<T>(provider);
-               return superClass.cast(factory.create(new Class<?>[0], new Object[0], handler));
-            }
-            catch (Exception e)
-            {
-               throw new UnproxyableResolutionException("Cannot create a proxy for the class " + superClass.getName(),
-                  e);
-            }
+            throw new UnproxyableResolutionException(
+                "Cannot create a proxy for the class "
+                    + superClass.getName()
+                    + " because it has at least one non-static, final method with public, protected or default visibility");
          }
-      };
+      }
       try
       {
-         return SecurityHelper.doPrivilegedExceptionAction(action);
+         ProxyFactory factory = new ProxyFactory();
+         factory.setSuperclass(superClass);
+         factory.setFilter(MethodFilterHolder.METHOD_FILTER);
+         MethodHandler handler = new ProxyMethodHandler<T>(provider);
+         return superClass.cast(factory.create(new Class<?>[0], new Object[0], handler));
       }
-      catch (PrivilegedActionException e)
+      catch (Exception e)
       {
-         Throwable cause = e.getCause();
-         if (cause instanceof UnproxyableResolutionException)
-         {
-            throw (UnproxyableResolutionException)cause;
-         }
-         else
-         {
-            throw new UnproxyableResolutionException("Cannot create a proxy for the class " + superClass.getName(),
-               cause);
-         }
+         throw new UnproxyableResolutionException("Cannot create a proxy for the class " + superClass.getName(),
+                                                  e);
       }
    }
 

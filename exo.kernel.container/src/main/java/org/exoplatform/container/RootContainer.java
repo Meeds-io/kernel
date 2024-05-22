@@ -18,9 +18,7 @@
  */
 package org.exoplatform.container;
 
-import org.exoplatform.commons.utils.PrivilegedFileHelper;
 import org.exoplatform.commons.utils.PropertyManager;
-import org.exoplatform.commons.utils.SecurityHelper;
 import org.exoplatform.container.ar.Archive;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.configuration.ConfigurationManagerImpl;
@@ -28,7 +26,6 @@ import org.exoplatform.container.definition.PortalContainerConfig;
 import org.exoplatform.container.definition.PortalContainerDefinition;
 import org.exoplatform.container.monitor.jvm.J2EEServerInfo;
 import org.exoplatform.container.monitor.jvm.OperatingSystemInfo;
-import org.exoplatform.container.security.ContainerPermissions;
 import org.exoplatform.container.spi.ContainerException;
 import org.exoplatform.container.util.ContainerUtil;
 import org.exoplatform.container.xml.Configuration;
@@ -51,9 +48,6 @@ import org.gatein.wci.authentication.AuthenticationListener;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -173,31 +167,18 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
       profiles.addAll(ExoContainer.getProfilesFromProperty());
 
       //
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-      {
-         public Void run()
-         {
-            Runtime.getRuntime().addShutdownHook(hook);
-            return null;
-         }
-      });
+      Runtime.getRuntime().addShutdownHook(hook);
+
 
       // Log the active profiles
       LOG.info("Active profiles for Root container: " + profiles);
 
-      SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
+      registerComponentInstance(J2EEServerInfo.class, serverenv_);
+      if (PropertyManager.isDevelopping())
       {
-         public Void run()
-         {
-            registerComponentInstance(J2EEServerInfo.class, serverenv_);
-            if (PropertyManager.isDevelopping())
-            {
-               loadingCL = Thread.currentThread().getContextClassLoader();
-               loadingSystemProperties = (Properties)System.getProperties().clone();
-            }
-            return null;
-         }
-      });
+         loadingCL = Thread.currentThread().getContextClassLoader();
+         loadingSystemProperties = (Properties)System.getProperties().clone();
+      }
    }
 
    public OperatingSystemInfo getOSEnvironment()
@@ -263,29 +244,16 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
                MockServletContext scontext = new MockServletContext(name);
                pcontainer = new PortalContainer(this, scontext);
                final PortalContainer currentPortalContainer = pcontainer;
-               SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-               {
-                  public Void run()
-                  {
-                     PortalContainer.setInstance(currentPortalContainer);
-                     return null;
-                  }
-               });
+               PortalContainer.setInstance(currentPortalContainer);
+
                final ConfigurationManagerImpl cService = new MockConfigurationManagerImpl(scontext);
                cService.addConfiguration(ContainerUtil.getConfigurationURL("conf/portal/configuration.xml"));
                cService.addConfiguration(ContainerUtil.getConfigurationURL("conf/portal/test-configuration.xml"));
                cService.processRemoveConfiguration();
-               SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-               {
-                  public Void run()
-                  {
-                     currentPortalContainer.registerComponentInstance(ConfigurationManager.class, cService);
-                     registerComponentInstance(name, currentPortalContainer);
-                     currentPortalContainer.start(true);
-                     onStartupComplete();
-                     return null;
-                  }
-               });
+               currentPortalContainer.registerComponentInstance(ConfigurationManager.class, cService);
+               registerComponentInstance(name, currentPortalContainer);
+               currentPortalContainer.start(true);
+               onStartupComplete();
             }
             catch (Exception ex)
             {
@@ -304,10 +272,6 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
     */
    public void registerPortalContainer(ServletContext context)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       PortalContainerConfig config = getPortalContainerConfig();
       if (config.hasDefinition())
       {
@@ -688,10 +652,6 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
     */
    public synchronized void createPortalContainer(ServletContext context)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       // Keep the old ClassLoader
       final ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
       boolean hasChanged = false;
@@ -849,10 +809,6 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
     */
    synchronized public void removePortalContainer(ServletContext servletContext)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       this.unregisterComponent(ContainerUtil.getServletContextName(servletContext));
    }
 
@@ -871,23 +827,16 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
    {
       try
       {
-         return SecurityHelper.doPrivilegedExceptionAction(new PrivilegedExceptionAction<RootContainer>()
-         {
-            public RootContainer run() throws Exception
-            {
-               RootContainer rootContainer = new RootContainer();
-               ConfigurationManager service = loadConfigurationManager(rootContainer, true);
-               rootContainer.registerComponentInstance(ConfigurationManager.class, service);
-               rootContainer.start(true);
-               return rootContainer;
-            }
-         });
+         RootContainer rootContainer = new RootContainer();
+         ConfigurationManager service = loadConfigurationManager(rootContainer, true);
+         rootContainer.registerComponentInstance(ConfigurationManager.class, service);
+         rootContainer.start(true);
+         return rootContainer;
       }
-      catch (PrivilegedActionException e)
+      catch (Exception e)
       {
-         Exception cause = e.getException();
-         LOG.error("Could not build root container", cause);
-         LOG.error(e.getLocalizedMessage(), cause);
+         LOG.error("Could not build root container", e);
+         LOG.error(e.getLocalizedMessage(), e);
          return null;
       }
    }
@@ -914,7 +863,7 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
       String confDir = serverEnv.getExoConfigurationDirectory();
       String overrideConf = confDir + "/configuration.xml";
       File file = new File(overrideConf);
-      if (PrivilegedFileHelper.exists(file))
+      if (file.exists())
       {
          service.addConfiguration("file:" + overrideConf);
       }
@@ -963,14 +912,8 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
                         time += System.currentTimeMillis();
                         LOG.info("Root container is built (build time " + time + "ms)");
                         singleton_ = result;
-                        SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-                        {
-                           public Void run()
-                           {
-                              ExoContainerContext.setTopContainer(singleton_);
-                              return null;
-                           }
-                        });
+                        ExoContainerContext.setTopContainer(singleton_);
+
                         LOG.info("Root container booted");
                      }
                      else
@@ -994,10 +937,6 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
     */
    static public void setInstance(RootContainer rcontainer)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       singleton_ = rcontainer;
    }
    /**
@@ -1046,14 +985,8 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
             singleton_ = null;
             LOG.info("All the containers have been stopped successfully");
             // We unregister the root container
-            SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-            {
-               public Void run()
-               {
-                  Runtime.getRuntime().removeShutdownHook(hook);
-                  return null;
-               }
-            });
+            Runtime.getRuntime().removeShutdownHook(hook);
+
             ServletContainerFactory.getServletContainer().removeWebAppListener(this);
             ServletContainerFactory.getServletContainer().removeAuthenticationlistener(this);
             LOG.info("Trying to restart the root container");
@@ -1191,10 +1124,6 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
     */
    public void addInitTask(ServletContext context, PortalContainerInitTask task, String portalContainer)
    {
-      SecurityManager security = System.getSecurityManager();
-      if (security != null)
-         security.checkPermission(ContainerPermissions.MANAGE_CONTAINER_PERMISSION);
-      
       final PortalContainer container = getPortalContainer(portalContainer);
       if (!task.alreadyExists(container) || lastUpdateTime.get() > 0)
       {
@@ -1391,14 +1320,7 @@ public class RootContainer extends ExoContainer implements WebAppListener, Authe
       @Override
       public void run()
       {
-         SecurityHelper.doPrivilegedAction(new PrivilegedAction<Void>()
-         {
-            public Void run()
-            {
-               container_.stop();
-               return null;
-            }
-         });
+         container_.stop();
       }
    }
 
