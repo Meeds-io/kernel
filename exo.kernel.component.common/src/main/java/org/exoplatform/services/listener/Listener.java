@@ -29,14 +29,6 @@ import org.exoplatform.container.component.BaseComponentPlugin;
  * @author <a href="mailto:nhudinhthuan@exoplatform.com">Nhu Dinh Thuan</a>
  * @LevelAPI Platform
  */
-public abstract class Listener<S, D> extends BaseComponentPlugin
-{
-
-   /**
-    * This method should be invoked when an event with the same name is
-    * broadcasted
-    * @param event the event instance
-    */
-   public abstract void onEvent(Event<S, D> event) throws Exception;
+public abstract class Listener<S, D> extends BaseComponentPlugin implements ListenerBase<S, D> {
 
 }
