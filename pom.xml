@@ -26,27 +26,28 @@
 
    <parent>
     <artifactId>maven-parent-pom</artifactId>
-    <groupId>org.exoplatform</groupId>
+    <groupId>io.meeds</groupId>
     <version>27-M03</version>
     <relativePath/>
    </parent>
 
-   <groupId>org.exoplatform.kernel</groupId>
+   <groupId>io.meeds.kernel</groupId>
    <artifactId>kernel-parent</artifactId>
    <version>7.0.x-SNAPSHOT</version>
    <packaging>pom</packaging>
 
-   <name>eXo PLF:: Kernel</name>
+   <name>Meeds:: PLF:: Kernel</name>
    <description>Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
       <!-- PLF project dependencies -->
-      <org.exoplatform.gatein.wci.version>7.0.x-SNAPSHOT</org.exoplatform.gatein.wci.version>
+      <io.meeds.gatein.wci.version>7.0.x-SNAPSHOT</io.meeds.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
 
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
+    <exo.snapshots.repo.url>https://repository.exoplatform.org/content/repositories/meeds-snapshots</exo.snapshots.repo.url>
    </properties>
 
    <scm>
@@ -71,9 +72,9 @@
       <dependencies>
          <!-- Import gatein-wci dependencies -->
          <dependency>
-           <groupId>org.exoplatform.gatein.wci</groupId>
+           <groupId>io.meeds.gatein.wci</groupId>
            <artifactId>wci-parent</artifactId>
-           <version>${org.exoplatform.gatein.wci.version}</version>
+           <version>${io.meeds.gatein.wci.version}</version>
            <type>pom</type>
            <scope>import</scope>
          </dependency>

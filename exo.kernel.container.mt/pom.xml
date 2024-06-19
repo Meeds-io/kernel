@@ -23,23 +23,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
    <parent>
-      <groupId>org.exoplatform.kernel</groupId>
+      <groupId>io.meeds.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
       <version>7.0.x-SNAPSHOT</version>
    </parent>
    <artifactId>exo.kernel.container.mt</artifactId>
-   <name>eXo PLF:: Kernel :: Container Multi-Threaded</name>
+   <name>Meeds:: PLF:: Kernel :: Container Multi-Threaded</name>
    <description>Implementation of Container Multi-Threaded for Exoplatform SAS 'eXo Kernel' project.</description>
    <properties>
       <exo.test.coverage.ratio>0.8</exo.test.coverage.ratio>
    </properties>
    <dependencies>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.container</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.container</artifactId>
          <classifier>tests</classifier>
          <scope>test</scope>
@@ -51,7 +51,7 @@
          <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>
@@ -76,7 +76,7 @@
                   <configuration>
                      <artifactItems>
                         <artifactItem>
-                           <groupId>org.exoplatform.kernel</groupId>
+                           <groupId>io.meeds.kernel</groupId>
                            <artifactId>exo.kernel.container</artifactId>
                            <classifier>test-sources</classifier>
                            <type>jar</type>

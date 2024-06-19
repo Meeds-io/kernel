@@ -25,14 +25,14 @@
    <modelVersion>4.0.0</modelVersion>
 
    <parent>
-      <groupId>org.exoplatform.kernel</groupId>
+      <groupId>io.meeds.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
       <version>7.0.x-SNAPSHOT</version>
    </parent>
 
    <artifactId>exo.kernel.commons.test</artifactId>
 
-   <name>eXo PLF:: Kernel :: Commons :: Test Util</name>
+   <name>Meeds:: PLF:: Kernel :: Commons :: Test Util</name>
    <description>Tests of Commons Utils of Exoplatform SAS 'eXo Kernel' project.</description>
 
 </project>
