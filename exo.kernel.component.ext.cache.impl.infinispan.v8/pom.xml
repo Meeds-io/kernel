@@ -23,28 +23,28 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.exoplatform.kernel</groupId>
+		<groupId>io.meeds.kernel</groupId>
 		<artifactId>kernel-parent</artifactId>
 		<version>7.0.x-exo-SNAPSHOT</version>
 	</parent>
 	<artifactId>exo.kernel.component.ext.cache.impl.infinispan.v8</artifactId>
-	<name>eXo PLF:: Kernel :: Cache Extension :: Infinispan Implementation</name>
+	<name>Meeds:: PLF:: Kernel :: Cache Extension :: Infinispan Implementation</name>
 	<description>Infinispan Implementation of Cache Service for Exoplatform SAS 'eXo Kernel' project.</description>
   <properties>
 		<exo.test.coverage.ratio>0.6</exo.test.coverage.ratio>
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>org.exoplatform.kernel</groupId>
+			<groupId>io.meeds.kernel</groupId>
 			<artifactId>exo.kernel.commons.test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.exoplatform.kernel</groupId>
+			<groupId>io.meeds.kernel</groupId>
 			<artifactId>exo.kernel.component.cache</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.exoplatform.kernel</groupId>
+			<groupId>io.meeds.kernel</groupId>
 			<artifactId>exo.kernel.component.common</artifactId>
 			<exclusions>
 				<exclusion>
@@ -85,7 +85,7 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.exoplatform.kernel</groupId>
+			<groupId>io.meeds.kernel</groupId>
 			<artifactId>exo.kernel.container</artifactId>
 		</dependency>
     </dependencies>

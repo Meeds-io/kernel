@@ -25,14 +25,14 @@
    <modelVersion>4.0.0</modelVersion>
 
    <parent>
-      <groupId>org.exoplatform.kernel</groupId>
+      <groupId>io.meeds.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
       <version>7.0.x-exo-SNAPSHOT</version>
    </parent>
 
    <artifactId>exo.kernel.component.command</artifactId>
 
-   <name>eXo PLF:: Kernel :: Component :: Command Service</name>
+   <name>Meeds:: PLF:: Kernel :: Component :: Command Service</name>
    <description>Implementation of Command Service of Exoplatform SAS 'eXo Kernel' project.</description>
 
    <properties>
@@ -41,11 +41,11 @@
 
    <dependencies>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.container</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>

@@ -23,23 +23,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
    <parent>
-      <groupId>org.exoplatform.kernel</groupId>
+      <groupId>io.meeds.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
       <version>7.0.x-exo-SNAPSHOT</version>
    </parent>
    <artifactId>exo.kernel.container</artifactId>
-   <name>eXo PLF:: Kernel :: Container</name>
+   <name>Meeds:: PLF:: Kernel :: Container</name>
    <description>Implementation of Container for Exoplatform SAS 'eXo Kernel' project.</description>
    <properties>
       <exo.test.coverage.ratio>0.6</exo.test.coverage.ratio>
    </properties>
    <dependencies>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.commons</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.kernel</groupId>
+         <groupId>io.meeds.kernel</groupId>
          <artifactId>exo.kernel.commons.test</artifactId>
          <scope>test</scope>
       </dependency>
@@ -54,7 +54,7 @@
           </exclusions>
       </dependency>
       <dependency>
-         <groupId>org.exoplatform.gatein.wci</groupId>
+         <groupId>io.meeds.gatein.wci</groupId>
          <artifactId>wci-wci</artifactId>
       </dependency>
       <dependency>
