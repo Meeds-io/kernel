@@ -28,12 +28,12 @@
     <artifactId>maven-parent-pom</artifactId>
     <groupId>io.meeds</groupId>
     <version>27-M04</version>
-    <relativePath/>
+    <relativePath />
    </parent>
 
    <groupId>io.meeds.kernel</groupId>
    <artifactId>kernel-parent</artifactId>
-   <version>7.0.x-exo-SNAPSHOT</version>
+   <version>7.0.0-exo-M26</version>
    <packaging>pom</packaging>
 
    <name>Meeds:: PLF:: Kernel</name>
@@ -54,7 +54,7 @@
       <connection>scm:git:git://github.com/exoplatform/kernel.git</connection>
       <developerConnection>scm:git:git@github.com:exoplatform/kernel.git</developerConnection>
       <url>https://fisheye.exoplatform.org/browse/kernel-dev</url>
-     <tag>HEAD</tag>
+     <tag>7.0.0-exo-M26</tag>
    </scm>
 
    <modules>
