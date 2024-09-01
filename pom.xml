@@ -41,7 +41,7 @@
 
    <properties>
       <!-- PLF project dependencies -->
-      <io.meeds.gatein.wci.version>7.0.x-exo-SNAPSHOT</io.meeds.gatein.wci.version>
+      <io.meeds.gatein.wci.version>7.0.0-exo-20240901</io.meeds.gatein.wci.version>
       <!-- 3rd party libraries versions -->
       <subethasmtp.version>3.1.7</subethasmtp.version>
 
