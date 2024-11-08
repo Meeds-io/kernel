@@ -50,27 +50,6 @@ public class TestContainerUtil extends TestCase {
     Thread.currentThread().setContextClassLoader(oldCLoader);
   }
 
-  public void testJBossAS6CL() throws Exception {
-    Thread.currentThread().setContextClassLoader(new JBossAS6MockClassLoader());
-    Collection<URL> urls = ContainerUtil.getConfigurationURL("conf/configuration.xml");
-    assertNotNull(urls);
-    assertEquals(3, urls.size());
-  }
-
-  private static class JBossAS6MockClassLoader extends ClassLoader {
-
-    @Override
-    public Enumeration<URL> getResources(String name) throws IOException {
-      List<URL> urls = new ArrayList<URL>();
-      urls.add(new URL("file:///GateIn-JBoss6/server/default/deploy/gatein.ear/lib/exo.portal.webui.portal.jar/conf/configuration.xml"));
-      urls.add(new URL("file:///GateIn-JBoss6/server/default/deploy/gatein.ear/lib/exo.core.component.xml-processing/conf/configuration.xml"));
-      urls.add(new URL("file:///GateIn-JBoss6/server/default/deploy/gatein-sample-extension.ear/sample-ext.war/WEB-INF/conf/configuration.xml"));
-      urls.add(new URL("file:///GateIn-JBoss6/server/default/deploy/gatein.ear/lib/exo.kernel.commons.jar/conf/configuration.xml"));
-      return Collections.enumeration(urls);
-    }
-
-  }
-
   public void testGetServletContextName() {
     final AtomicReference<String> scn = new AtomicReference<String>("myContextName");
     final AtomicReference<String> scp = new AtomicReference<String>("/myContextPath");

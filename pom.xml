@@ -64,8 +64,6 @@
       <module>exo.kernel.commons.test</module>
       <module>exo.kernel.component.common</module>
       <module>exo.kernel.component.cache</module>
-      <module>exo.kernel.component.ext.cache.impl.infinispan.v8</module>
-      <module>exo.kernel.component.command</module>
    </modules>
 
    <dependencyManagement>
@@ -116,16 +114,6 @@
          <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>exo.kernel.component.cache</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>exo.kernel.component.ext.cache.impl.infinispan.v8</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>exo.kernel.component.command</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
