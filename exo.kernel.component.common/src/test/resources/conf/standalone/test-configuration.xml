@@ -53,32 +53,6 @@
                </properties-param>
             </init-params>
          </component-plugin>
-
-         <component-plugin>
-            <name>tx.userTransaction</name>
-            <set-method>addPlugin</set-method>
-            <type>org.exoplatform.services.naming.BindReferencePlugin</type>
-            <init-params>
-               <value-param>
-                  <name>bind-name</name>
-                  <value>UserTransaction</value>
-               </value-param>
-               <value-param>
-                  <name>class-name</name>
-                  <value>javax.transaction.UserTransaction</value>
-               </value-param>
-               <value-param>
-                  <name>factory</name>
-                  <value>org.objectweb.jotm.UserTransactionFactory</value>
-                  <!-- value>org.exoplatform.services.transaction.UserTransactionFactory</value -->
-               </value-param>
-               <properties-param>
-                  <name>ref-addresses</name>
-                  <description>ref-addresses</description>
-                  <property name="timeout" value="60" />
-               </properties-param>
-            </init-params>
-         </component-plugin>
       </component-plugins>
       <init-params>
          <properties-param>

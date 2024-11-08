@@ -27,16 +27,6 @@
    <component>
       <type>org.exoplatform.services.scheduler.test.TestSchedulerService$MyComponent</type>
    </component>
-	
-   <component>
-      <key>org.exoplatform.services.net.NetService</key>
-      <type>org.exoplatform.services.net.impl.NetServiceImpl</type>
-   </component>
-
-   <component>
-      <key>org.exoplatform.services.compress.CompressData</key>
-      <type>org.exoplatform.services.compress.CompressData</type>
-   </component>
 
    <component>
       <key>org.exoplatform.services.listener.ListenerService</key>
@@ -126,32 +116,6 @@
                   <property name="url" value="jdbc:hsqldb:file:target/temp/data/portal" />
                   <property name="username" value="sa" />
                   <property name="password" value="" />
-               </properties-param>
-            </init-params>
-         </component-plugin>
-
-         <component-plugin>
-            <name>tx.userTransaction</name>
-            <set-method>addPlugin</set-method>
-            <type>org.exoplatform.services.naming.BindReferencePlugin</type>
-            <init-params>
-               <value-param>
-                  <name>bind-name</name>
-                  <value>UserTransaction</value>
-               </value-param>
-               <value-param>
-                  <name>class-name</name>
-                  <value>javax.transaction.UserTransaction</value>
-               </value-param>
-               <value-param>
-                  <name>factory</name>
-                  <value>org.objectweb.jotm.UserTransactionFactory</value>
-                  <!-- value>org.exoplatform.services.transaction.UserTransactionFactory</value -->
-               </value-param>
-               <properties-param>
-                  <name>ref-addresses</name>
-                  <description>ref-addresses</description>
-                  <property name="timeout" value="60" />
                </properties-param>
             </init-params>
          </component-plugin>
