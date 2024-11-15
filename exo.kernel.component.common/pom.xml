@@ -77,21 +77,6 @@
          <artifactId>javax.mail</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.jgroups</groupId>
-         <artifactId>jgroups</artifactId>
-      </dependency>
-      <dependency>
-         <groupId>com.atomikos</groupId>
-         <artifactId>transactions-jta</artifactId>
-         <scope>provided</scope>
-         <exclusions>
-            <exclusion>
-               <groupId>org.mockito</groupId>
-               <artifactId>mockito-all</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
          <groupId>org.subethamail</groupId>
          <artifactId>subethasmtp</artifactId>
          <scope>test</scope>
@@ -121,39 +106,12 @@
          <scope>test</scope>
       </dependency>
       <dependency>
-         <groupId>commons-pool</groupId>
-         <artifactId>commons-pool</artifactId>
-         <scope>runtime</scope>
-      </dependency>
-      <dependency>
         <groupId>javax.activation</groupId>
         <artifactId>javax.activation-api</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>javax.transaction</groupId>
-        <artifactId>javax.transaction-api</artifactId>
       </dependency>
    </dependencies>
    <build>
       <plugins>
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-                <argLine>@{argLine} @{surefire.argLine} -Djava.net.preferIPv4Stack=true</argLine>
-                <systemProperties>
-                  <!-- Avoid the firewall -->
-                  <property>
-                     <name>jgroups.bind_addr</name>
-                     <value>127.0.0.1</value>
-                  </property>
-                  <property>
-                     <name>jgroups.stack</name>
-                     <value>udp</value>
-                  </property>
-               </systemProperties>
-            </configuration>
-         </plugin>
          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>

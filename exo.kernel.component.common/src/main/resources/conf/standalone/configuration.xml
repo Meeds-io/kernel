@@ -20,10 +20,6 @@
 
 -->
 <configuration>
-   <component>
-      <key>org.exoplatform.services.net.NetService</key>
-      <type>org.exoplatform.services.net.impl.NetServiceImpl</type>
-   </component>
 
    <component>
       <key>org.exoplatform.services.listener.ListenerService</key>

@@ -413,10 +413,10 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
    public List<JobDetail> getAllJobs() throws Exception
    {
       List<JobDetail> jlist = new ArrayList<JobDetail>();
-      List<String> jgroups = scheduler_.getJobGroupNames();
-      for (int i = 0, length = jgroups.size(); i < length; i++)
+      List<String> jobGroups = scheduler_.getJobGroupNames();
+      for (int i = 0, length = jobGroups.size(); i < length; i++)
       {
-         Set<JobKey> jkeys = scheduler_.getJobKeys(GroupMatcher.jobGroupEquals(jgroups.get(i)));
+         Set<JobKey> jkeys = scheduler_.getJobKeys(GroupMatcher.jobGroupEquals(jobGroups.get(i)));
          for (JobKey jkey : jkeys)
          {
             jlist.add(scheduler_.getJobDetail(jkey));
@@ -737,8 +737,8 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
     */
    private void loadAllJobKeys() {
       try {
-         List<String> jgroups = scheduler_.getJobGroupNames();
-         for (String jobGroupName : jgroups)
+         List<String> jobGroups = scheduler_.getJobGroupNames();
+         for (String jobGroupName : jobGroups)
          {
             Set<JobKey> jobGroupNames = scheduler_.getJobKeys(GroupMatcher.jobGroupEquals(jobGroupName));
             persistedJobKeyList.addAll(jobGroupNames);
