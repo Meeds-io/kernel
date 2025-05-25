@@ -1,20 +1,20 @@
-/*
- * Copyright (C) 2013 eXo Platform SAS.
+/**
+ * This file is part of the Meeds project (https://meeds.io/).
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
+ * Copyright (C) 2020 - 2025 Meeds Association contact@meeds.io
  *
- * This software is distributed in the hope that it will be useful,
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package org.exoplatform.container.spi;
 
@@ -31,8 +31,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * This annotation can be used to provide a default definition of the component when we try to access it by name thanks
  * to {@link javax.inject.Named}
  *
- * @author <a href="mailto:nicolas.filotto@exoplatform.com">Nicolas Filotto</a>
- * @version $Id$
  */
 @Target(TYPE)
 @Retention(RUNTIME)

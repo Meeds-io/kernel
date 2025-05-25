@@ -1,20 +1,20 @@
-/*
- * Copyright (C) 2009 eXo Platform SAS.
+/**
+ * This file is part of the Meeds project (https://meeds.io/).
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
+ * Copyright (C) 2020 - 2025 Meeds Association contact@meeds.io
  *
- * This software is distributed in the hope that it will be useful,
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package org.exoplatform.container;
 
@@ -67,8 +67,6 @@ import jakarta.servlet.http.HttpSession;
  * A base container which plays an important role during the startup. However,
  * it is recommended that it should not be used directly.
  *
- * @author <a href="mailto:tuan08@users.sourceforge.net">Tuan Nguyen</a>
- * @LevelAPI Provisional
  */
 @Managed
 @NameTemplate(@Property(key = "container", value = "root"))
