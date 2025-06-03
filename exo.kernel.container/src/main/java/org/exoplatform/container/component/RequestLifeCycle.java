@@ -35,7 +35,7 @@ public class RequestLifeCycle
 {
 
    /** The current stack. */
-   private static ThreadLocal<RequestLifeCycleStack> current = new ThreadLocal<RequestLifeCycleStack>();
+   private static ThreadLocal<RequestLifeCycleStack> current = new ThreadLocal<>();
 
    /** The components of this life cycle. */
    private List<ComponentRequestLifecycle> components;
@@ -59,7 +59,7 @@ public class RequestLifeCycle
 
    IdentityHashMap<Object, Throwable> doEnd()
    {
-      IdentityHashMap<Object, Throwable> result = new IdentityHashMap<Object, Throwable>();
+      IdentityHashMap<Object, Throwable> result = new IdentityHashMap<>();
 
       //
       for (ComponentRequestLifecycle componentRLF : components)
@@ -152,26 +152,23 @@ public class RequestLifeCycle
     * @throws IllegalStateException if no container life cycle is associated with this thread
     * @return the result map
     */
-   public static Map<Object, Throwable> end() throws IllegalStateException
-   {
-      RequestLifeCycleStack lf = current.get();
-      if (lf == null)
-      {
-         throw new IllegalStateException();
-      }
-      Map<Object, Throwable> result = lf.end();
-      if (lf.isEmpty())
-      {
-         current.set(null);
-      }
-      return result;
+   public static Map<Object, Throwable> end() throws IllegalStateException {
+     RequestLifeCycleStack lf = current.get();
+     if (lf == null) {
+       throw new IllegalStateException();
+     }
+     Map<Object, Throwable> result = lf.end();
+     if (lf.isEmpty()) {
+       current.remove();
+     }
+     return result;
    }
 
-   protected void restartTransaction() {
+   public static void restartTransaction() {
      restartTransaction(ExoContainerContext.getCurrentContainer());
    }
 
-   protected void restartTransaction(ExoContainer container) {
+   public static void restartTransaction(ExoContainer container) {
      int i = 0;
      // Close transactions until no encapsulated transaction
      boolean success = true;
@@ -202,7 +199,7 @@ public class RequestLifeCycle
          throw new IllegalArgumentException("The lifeCycle cannot be null");
       }
       RequestLifeCycleStack lf = current.get();
-      return lf == null ? false : lf.isStarted(lifeCycle);
+      return lf != null && lf.isStarted(lifeCycle);
    }
 
    /**
@@ -217,6 +214,6 @@ public class RequestLifeCycle
          throw new IllegalArgumentException("The container cannot be null");
       }
       RequestLifeCycleStack lf = current.get();
-      return  lf== null ? false : lf.isStarted(container, local);
-   }
+      return lf != null && lf.isStarted(container, local);
+    }
 }
