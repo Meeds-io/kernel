@@ -164,9 +164,10 @@ public class CacheState<K extends Serializable, V> {
 
   private void traceExcessiveMissCountRatio() {
     int missCount = config.misses.get();
-    int maxSize = config.getMaxSize();
     int hitCount = config.hits.get();
+    int maxSize = config.getMaxSize();
     if (missCount > MIN_MISS_COUNT
+        && missCount > (hitCount * 2)
         && missCount % Math.max(MIN_MISS_COUNT, Math.min(maxSize, hitCount)) == 0) { // NOSONAR
       log.warn("Cache '{}' seems to have an excessive miss count '{}' (hits count: '{}'), please consider reviewing Max Size '{}' and TTL '{}s' configurations.",
                config.getName(),
