@@ -46,12 +46,14 @@ public class TestContainer extends TestCase
       LOG.info("Start SetUp");
    
       System.setProperty("maven.exoplatform.dir", TestContainer.class.getResource("/").getFile());
-      ExoContainer topContainer = ExoContainerContext.getTopContainer();
-      if(topContainer != null) {
-         topContainer.stop();
-      }
       ExoContainerContext.setCurrentContainer(null);
       PortalContainer.setInstance(null);
+      // FIXED: Don't call getTopContainer() which lazily creates a RootContainer.
+      // Instead stop the current singleton if one exists, which will clear topContainer.
+      ExoContainer current = ExoContainerContext.getCurrentContainerIfPresent();
+      if (current != null) {
+         current.stop();
+      }
       RootContainer.setInstance(null);
       LOG.info("End SetUp");
    
