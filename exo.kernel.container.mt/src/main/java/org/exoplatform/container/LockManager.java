@@ -140,7 +140,19 @@ public class LockManager
 
    /**
     * Checks if there is a deadlock, if so an {@link InterruptedException}
-    * will be thrown
+    * will be thrown.
+    * <p>
+    * When two threads enter lockInterruptibly() concurrently, each calls
+    * register() and then checkDeadLock() almost simultaneously.  There is a
+    * window where thread A has already registered but thread B has not yet
+    * registered when A runs its check – so A sees an empty entry for B's
+    * thread and returns "no deadlock", then both threads block forever.
+    * <p>
+    * To close this window we retry the walk a few times with a brief yield
+    * between attempts.  If the deadlock graph materialises within the retry
+    * budget we detect and break it; if it never materialises the lock owner
+    * really does not hold anything and we let the underlying primitive block
+    * normally.
     */
    private void checkDeadLock(Lockable l) throws InterruptedException
    {
@@ -156,21 +168,50 @@ public class LockManager
             + "thread so we cannot have a deadlock");
          return;
       }
+      // Retry loop: give concurrent threads a chance to complete their own
+      // register() call before we conclude there is no deadlock.
+      final int MAX_RETRIES = 10;
+      for (int attempt = 0; attempt < MAX_RETRIES; attempt++)
+      {
+         boolean conclusive = checkDeadLockOnce(l, owner);
+         if (conclusive)
+            return; // confirmed no deadlock
+         // Inconclusive: other thread hasn't registered yet. Yield and retry.
+         Thread.yield();
+      }
+      LOG.trace("No deadlock detected after retries – treating as no deadlock");
+   }
+
+   /**
+    * Single deadlock-graph walk. Returns {@code true} when the walk concludes
+    * "no deadlock" with certainty (e.g. the lock became free, or owner chain
+    * does not loop back); returns {@code false} when the result is inconclusive
+    * because a concurrent thread has not yet completed its register() call
+    * (i.e. {@code locks.get(currentOwner)} returned null while the owner is
+    * actively running); throws {@link InterruptedException} when a deadlock is
+    * confirmed.
+    */
+   private boolean checkDeadLockOnce(Lockable l, Thread owner) throws InterruptedException
+   {
       Thread currentOwner = owner;
       while (true)
       {
          Lockable lock = locks.get(currentOwner);
          if (lock == null)
          {
-            LOG.trace("The owner has no lockable resource to acquire so we cannot have a deadlock");
-            return;
+            // The owner thread is not waiting on anything right now.
+            // This could mean it truly holds no other lock (no deadlock),
+            // OR it has not finished its register() call yet (inconclusive).
+            // We return false (inconclusive) so the caller retries.
+            LOG.trace("Owner has no registered lockable resource yet – result inconclusive, will retry");
+            return false;
          }
          // We first check the locks
          Thread lockToAcquireOwner = lock.getOwner();
          if (lockToAcquireOwner == null)
          {
             LOG.trace("The lockable resource has no owner anymore so we cannot have a deadlock");
-            return;
+            return true;
          }
          else if (lockToAcquireOwner == Thread.currentThread())
          {
@@ -186,7 +227,7 @@ public class LockManager
             else
             {
                LOG.trace("The owner has changed or the resource is no more locked so we cannot have a deadlock");
-               return;
+               return true;
             }
          }
          currentOwner = lockToAcquireOwner;
