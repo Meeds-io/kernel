@@ -72,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -3716,7 +3717,8 @@ public class TestExoContainer
          thread.start();
       }
       startSignal.countDown();
-      doneSignal.await();
+      if (!doneSignal.await(60, TimeUnit.SECONDS))
+         throw new IllegalStateException("Timed out waiting for concurrent threads – possible deadlock");
       if (!errors.isEmpty())
       {
          for (Exception e : errors)

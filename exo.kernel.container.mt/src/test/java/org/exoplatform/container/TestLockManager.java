@@ -93,7 +93,8 @@ public class TestLockManager extends TestCase
       for (int i = 0; i < threadCount; i++)
          new Thread(r).start();
       startSignal.countDown();
-      endSignal.await();
+      if (!endSignal.await(30, TimeUnit.SECONDS))
+         fail("testNoDeadLock timed out – possible deadlock or hang in worker threads");
       if (ex.get() != null)
          throw ex.get();
       assertTrue(manager.isEmpty());
@@ -160,7 +161,7 @@ public class TestLockManager extends TestCase
          }
       };
       t2.start();
-      endSignal.await();
+      if (!endSignal.await(30, TimeUnit.SECONDS)) fail("testDeadlockWith2Threads timed out – deadlock not resolved");
       if (ex.get() != null)
          throw ex.get();
       assertTrue(manager.isEmpty());
@@ -257,7 +258,7 @@ public class TestLockManager extends TestCase
          }
       };
       t3.start();
-      endSignal.await();
+      if (!endSignal.await(30, TimeUnit.SECONDS)) fail("testDeadlockWith3Threads timed out – deadlock not resolved");
       if (ex.get() != null)
          throw ex.get();
       assertTrue(exceptions.size() >= 2);
@@ -334,7 +335,7 @@ public class TestLockManager extends TestCase
          }
       };
       t2.start();
-      endSignal.await();
+      if (!endSignal.await(30, TimeUnit.SECONDS)) fail("testDeadlockWithLockNTaskGetFirst timed out – deadlock not resolved");
       if (ex.get() != null)
          throw ex.get();
       assertTrue(manager.isEmpty());
@@ -410,7 +411,7 @@ public class TestLockManager extends TestCase
          }
       };
       t2.start();
-      endSignal.await();
+      if (!endSignal.await(30, TimeUnit.SECONDS)) fail("testDeadlockWithLockNTaskRunFirst timed out – deadlock not resolved");
       if (ex.get() != null)
          throw ex.get();
       assertTrue(manager.isEmpty());
