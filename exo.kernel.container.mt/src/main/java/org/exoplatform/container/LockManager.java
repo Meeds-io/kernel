@@ -53,9 +53,16 @@ public class LockManager
    private static final LockManager INSTANCE = new LockManager();
 
    /**
-    * Current lockable resources
+    * Threads currently *waiting* to acquire a lockable resource (registered
+    * between register() and unregister()).
     */
    private final ConcurrentMap<Thread, Lockable> locks = new ConcurrentHashMap<Thread, Lockable>();
+
+   /**
+    * Locks that are currently *held* (i.e. acquired but not yet released).
+    * Tracked so that isEmpty() returns false until every lock has been unlocked.
+    */
+   private final ConcurrentMap<Lockable, Thread> heldLocks = new ConcurrentHashMap<Lockable, Thread>();
 
    /**
     * The total amount of uncompleted tasks
@@ -115,11 +122,13 @@ public class LockManager
    }
 
    /**
-    * Indicates whether or not there are some remaining lockable resources
+    * Indicates whether or not there are some remaining lockable resources.
+    * Returns {@code true} only when no thread is waiting on a lock AND no
+    * lock is currently held.
     */
    boolean isEmpty()
    {
-      return locks.isEmpty();
+      return locks.isEmpty() && heldLocks.isEmpty();
    }
 
    /**
@@ -139,20 +148,34 @@ public class LockManager
    }
 
    /**
+    * Records that the current thread has successfully *acquired* a lockable
+    * resource (i.e. moved from "waiting" to "holding").
+    */
+   private void registerHeld(Lockable l)
+   {
+      heldLocks.put(l, Thread.currentThread());
+   }
+
+   /**
+    * Records that the current thread has released a lockable resource.
+    */
+   private void unregisterHeld(Lockable l)
+   {
+      heldLocks.remove(l);
+   }
+
+   /**
     * Checks if there is a deadlock, if so an {@link InterruptedException}
     * will be thrown.
     * <p>
-    * When two threads enter lockInterruptibly() concurrently, each calls
-    * register() and then checkDeadLock() almost simultaneously.  There is a
-    * window where thread A has already registered but thread B has not yet
-    * registered when A runs its check – so A sees an empty entry for B's
-    * thread and returns "no deadlock", then both threads block forever.
+    * The caller must have already called {@code register(l)} before invoking
+    * this method, so the current thread's "waiting-for" entry is visible to
+    * any concurrent deadlock check at the moment we walk the graph.
     * <p>
-    * To close this window we retry the walk a few times with a brief yield
-    * between attempts.  If the deadlock graph materialises within the retry
-    * budget we detect and break it; if it never materialises the lock owner
-    * really does not hold anything and we let the underlying primitive block
-    * normally.
+    * We spin-wait briefly for the lock's owner thread to appear in the waiting
+    * map: it may have just acquired the lock and not yet entered its own
+    * {@code register()} call, or it may genuinely hold the lock without waiting
+    * for anything.  A short spin closes this window without a hard sleep.
     */
    private void checkDeadLock(Lockable l) throws InterruptedException
    {
@@ -168,69 +191,65 @@ public class LockManager
             + "thread so we cannot have a deadlock");
          return;
       }
-      // Retry loop: give concurrent threads a chance to complete their own
-      // register() call before we conclude there is no deadlock.
-      final int MAX_RETRIES = 10;
-      for (int attempt = 0; attempt < MAX_RETRIES; attempt++)
+      // Walk the wait-for graph.  We retry only for the first hop (the direct
+      // owner of l) because that thread may be in the tiny window between
+      // acquiring l and entering its own register() call.  All subsequent hops
+      // must already be registered if they are genuinely waiting.
+      final int MAX_SPINS = 50;
+      for (int spin = 0; spin <= MAX_SPINS; spin++)
       {
-         boolean conclusive = checkDeadLockOnce(l, owner);
-         if (conclusive)
-            return; // confirmed no deadlock
-         // Inconclusive: other thread hasn't registered yet. Yield and retry.
+         if (locks.containsKey(owner) || spin == MAX_SPINS)
+         {
+            // Either the owner is now registered (common case) or we have
+            // exhausted the spin budget – in both cases run a full graph walk.
+            walkDeadLockGraph(l, owner);
+            return;
+         }
          Thread.yield();
       }
-      LOG.trace("No deadlock detected after retries – treating as no deadlock");
    }
 
    /**
-    * Single deadlock-graph walk. Returns {@code true} when the walk concludes
-    * "no deadlock" with certainty (e.g. the lock became free, or owner chain
-    * does not loop back); returns {@code false} when the result is inconclusive
-    * because a concurrent thread has not yet completed its register() call
-    * (i.e. {@code locks.get(currentOwner)} returned null while the owner is
-    * actively running); throws {@link InterruptedException} when a deadlock is
-    * confirmed.
+    * Walks the wait-for graph starting from {@code owner} to detect whether
+    * a cycle exists that involves the current thread.  Throws
+    * {@link InterruptedException} and interrupts the victim if a deadlock is
+    * confirmed; returns normally otherwise.
     */
-   private boolean checkDeadLockOnce(Lockable l, Thread owner) throws InterruptedException
+   private void walkDeadLockGraph(Lockable l, Thread owner) throws InterruptedException
    {
       Thread currentOwner = owner;
       while (true)
       {
-         Lockable lock = locks.get(currentOwner);
-         if (lock == null)
+         Lockable waited = locks.get(currentOwner);
+         if (waited == null)
          {
-            // The owner thread is not waiting on anything right now.
-            // This could mean it truly holds no other lock (no deadlock),
-            // OR it has not finished its register() call yet (inconclusive).
-            // We return false (inconclusive) so the caller retries.
-            LOG.trace("Owner has no registered lockable resource yet – result inconclusive, will retry");
-            return false;
+            // currentOwner is not waiting on anything – no cycle through it.
+            LOG.trace("Owner {} has no registered lockable resource – no deadlock", currentOwner);
+            return;
          }
-         // We first check the locks
-         Thread lockToAcquireOwner = lock.getOwner();
-         if (lockToAcquireOwner == null)
+         Thread nextOwner = waited.getOwner();
+         if (nextOwner == null)
          {
             LOG.trace("The lockable resource has no owner anymore so we cannot have a deadlock");
-            return true;
+            return;
          }
-         else if (lockToAcquireOwner == Thread.currentThread())
+         if (nextOwner == Thread.currentThread())
          {
-            // A potential deadlock has been detected
+            // Cycle detected: current thread is waiting for owner, and
+            // owner (transitively) is waiting for current thread.
             if (owner == l.getOwner() && l.isLocked())
             {
                LOG.debug("A deadlock has been detected, both threads will be interrupted");
-               // The owner did not change so we have a deadlock, so
-               // we will interrupt both threads
                owner.interrupt();
                throw new InterruptedException();
             }
             else
             {
                LOG.trace("The owner has changed or the resource is no more locked so we cannot have a deadlock");
-               return true;
+               return;
             }
          }
-         currentOwner = lockToAcquireOwner;
+         currentOwner = nextOwner;
       }
    }
 
@@ -262,7 +281,24 @@ public class LockManager
       {
          register(this);
          super.lock();
+         // Now we hold the lock: stop "waiting" and start "holding"
          unregister(this);
+         registerHeld(this);
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void unlock()
+      {
+         super.unlock();
+         // Release hold tracking only when the lock is fully released
+         // (hold count drops to zero for this thread).
+         if (!isHeldByCurrentThread())
+         {
+            unregisterHeld(this);
+         }
       }
 
       /**
@@ -276,9 +312,12 @@ public class LockManager
          {
             checkDeadLock(this);
             super.lockInterruptibly();
+            // Acquired successfully: start "holding"
+            registerHeld(this);
          }
          finally
          {
+            // Always stop "waiting"
             unregister(this);
          }
       }
@@ -292,6 +331,10 @@ public class LockManager
          register(this);
          boolean result = super.tryLock();
          unregister(this);
+         if (result)
+         {
+            registerHeld(this);
+         }
          return result;
       }
 
@@ -305,7 +348,12 @@ public class LockManager
          try
          {
             checkDeadLock(this);
-            return super.tryLock(timeout, unit);
+            boolean result = super.tryLock(timeout, unit);
+            if (result)
+            {
+               registerHeld(this);
+            }
+            return result;
          }
          finally
          {
@@ -399,15 +447,20 @@ public class LockManager
       @Override
       public void run()
       {
-         exclusiveOwnerThread.compareAndSet(null, Thread.currentThread());
+         if (!exclusiveOwnerThread.compareAndSet(null, Thread.currentThread()))
+         {
+            // Already running on another thread – FutureTask.run() will be a no-op anyway
+            return;
+         }
+         registerHeld(this);
          try
          {
             super.run();
          }
          finally
          {
-            totalUncompletedTasks.decrementAndGet();
             exclusiveOwnerThread.compareAndSet(Thread.currentThread(), null);
+            unregisterHeld(this);
          }
       }
 
