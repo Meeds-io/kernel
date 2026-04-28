@@ -22,7 +22,7 @@
    <parent>
       <groupId>io.meeds.kernel</groupId>
       <artifactId>kernel-parent</artifactId>
-      <version>7.2.x-meed-SNAPSHOT</version>
+      <version>7.2.0-meed-20260428</version>
    </parent>
    <artifactId>exo.kernel.container</artifactId>
    <name>Meeds:: PLF:: Kernel :: Container</name>
