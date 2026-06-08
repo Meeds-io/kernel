@@ -20,6 +20,7 @@ package org.exoplatform.container;
 
 import org.exoplatform.container.util.Utils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -245,6 +246,11 @@ class PortalContainerContext implements ServletContext {
          final InputStream is = context.getResourceAsStream(Utils.getPathOnly(path));
          if (is != null)
          {
+            try {
+              is.close();
+            } catch (IOException e) {
+              log("Error closing Input String of file '%s'".formatted(path));
+            }
             // The resource exists within this servlet context
             return context.getRequestDispatcher(path);
          }
