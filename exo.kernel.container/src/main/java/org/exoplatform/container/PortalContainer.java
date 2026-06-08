@@ -166,6 +166,10 @@ public class PortalContainer extends ExoContainer
       return webAppContexts;
    }
 
+  public Set<WebAppInitContext> getServletContexts() {
+    return Collections.unmodifiableSet(webAppContexts);
+  }
+
    /**
     * This gives the merged {@link ClassLoader} between the {@link PortalContainerClassLoader} and the
     * {@link ClassLoader} of the web application.
