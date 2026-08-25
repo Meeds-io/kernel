@@ -21,8 +21,8 @@ package org.exoplatform.services.mail;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * Interface provides basic operations for sending mail messages and mail service 

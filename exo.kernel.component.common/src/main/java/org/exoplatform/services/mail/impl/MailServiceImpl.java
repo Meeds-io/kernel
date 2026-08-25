@@ -18,6 +18,7 @@
  */
 package org.exoplatform.services.mail.impl;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
@@ -28,16 +29,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-import javax.activation.DataHandler;
-import javax.mail.Part;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-import javax.mail.util.ByteArrayDataSource;
+import jakarta.activation.DataHandler;
+import jakarta.mail.Part;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.internet.MimeUtility;
+import jakarta.mail.util.ByteArrayDataSource;
+
+import org.simplejavamail.utils.mail.dkim.DkimMessage;
+import org.simplejavamail.utils.mail.dkim.DkimSigner;
+import org.simplejavamail.utils.mail.dkim.SigningAlgorithm;
 
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
@@ -47,7 +52,7 @@ import org.exoplatform.services.mail.MailService;
 import org.exoplatform.services.mail.Message;
 
 /**
- * Basically this is {@link MailService} implementation build on top of javax.mail package.
+ * Basically this is {@link MailService} implementation build on top of the jakarta.mail package.
  * You may define the behaviour of the service via {@link InitParams}, which can
  * be set in configuration file of the {@link ExoContainer}.
  * <p>
@@ -65,9 +70,35 @@ public class MailServiceImpl implements MailService
     */
    static final String MAX_THREAD_NUMBER = "mail.max.thread.number";
 
+   /**
+    * DKIM signing of outgoing mail is opt-in: disabled unless mail.dkim.enabled=true
+    * is set, in which case mail.dkim.domain, mail.dkim.selector and mail.dkim.privateKeyPath
+    * are required.
+    */
+   static final String DKIM_ENABLED = "mail.dkim.enabled";
+
+   static final String DKIM_DOMAIN = "mail.dkim.domain";
+
+   static final String DKIM_SELECTOR = "mail.dkim.selector";
+
+   static final String DKIM_PRIVATE_KEY_PATH = "mail.dkim.privateKeyPath";
+
+   static final String DKIM_SIGNING_ALGORITHM = "mail.dkim.signingAlgorithm";
+
+   static final String DKIM_IDENTITY = "mail.dkim.identity";
+
+   /**
+    * Whether the signer should look up the domain's DNS TXT record and verify
+    * it matches the configured private key before signing each message.
+    * Defaults to false so a DNS outage never blocks outgoing mail.
+    */
+   static final String DKIM_CHECK_DOMAIN_KEY = "mail.dkim.checkDomainKey";
+
    private Session mailSession_;
 
    private Properties props_;
+
+   private DkimSigner dkimSigner_;
 
    /**
     * Provides thread pool routines for asynchronous mail message sending
@@ -94,6 +125,10 @@ public class MailServiceImpl implements MailService
       else
       {
          mailSession_ = Session.getInstance(props_, null);
+      }
+      if ("true".equalsIgnoreCase(props_.getProperty(DKIM_ENABLED)))
+      {
+         dkimSigner_ = createDkimSigner(props_);
       }
       int threadNumber =
          props_.getProperty(MAX_THREAD_NUMBER) != null ? Integer.valueOf(props_.getProperty(MAX_THREAD_NUMBER))
@@ -170,7 +205,7 @@ public class MailServiceImpl implements MailService
            sendTo[i].setPersonal(sendTo[i].getPersonal(), "UTF-8");
          }
       }
-      mimeMessage.setRecipients(javax.mail.Message.RecipientType.TO, sendTo);
+      mimeMessage.setRecipients(jakarta.mail.Message.RecipientType.TO, sendTo);
       // set CC to the message
       if ((getArrs(CC) != null) && (getArrs(CC).length > 0))
       {
@@ -182,7 +217,7 @@ public class MailServiceImpl implements MailService
               copyTo[i].setPersonal(copyTo[i].getPersonal(), "UTF-8");
             }
          }
-         mimeMessage.setRecipients(javax.mail.Message.RecipientType.CC, copyTo);
+         mimeMessage.setRecipients(jakarta.mail.Message.RecipientType.CC, copyTo);
       }
       // set BCC to the message
       if ((getArrs(BCC) != null) && (getArrs(BCC).length > 0))
@@ -195,7 +230,7 @@ public class MailServiceImpl implements MailService
               bccTo[i].setPersonal(bccTo[i].getPersonal(), "UTF-8");
             }
          }
-         mimeMessage.setRecipients(javax.mail.Message.RecipientType.BCC, bccTo);
+         mimeMessage.setRecipients(jakarta.mail.Message.RecipientType.BCC, bccTo);
       }
       // set the Reply-To to the message
       if ((getArrs(replyTo) != null) && (getArrs(replyTo).length > 0))
@@ -259,7 +294,37 @@ public class MailServiceImpl implements MailService
     */
    public void sendMessage(MimeMessage message) throws Exception
    {
-      Transport.send(message);
+      Transport.send(dkimSigner_ != null ? new DkimMessage(message, dkimSigner_) : message);
+   }
+
+   private static DkimSigner createDkimSigner(Properties props) throws Exception
+   {
+      String domain = blankToNull(props.getProperty(DKIM_DOMAIN));
+      String selector = blankToNull(props.getProperty(DKIM_SELECTOR));
+      String privateKeyPath = blankToNull(props.getProperty(DKIM_PRIVATE_KEY_PATH));
+      if (domain == null || selector == null || privateKeyPath == null)
+      {
+         throw new IllegalStateException("DKIM signing is enabled (" + DKIM_ENABLED + "=true) but " + DKIM_DOMAIN
+            + ", " + DKIM_SELECTOR + " and " + DKIM_PRIVATE_KEY_PATH + " must all be set");
+      }
+      DkimSigner signer = new DkimSigner(domain, selector, new File(privateKeyPath));
+      String signingAlgorithm = blankToNull(props.getProperty(DKIM_SIGNING_ALGORITHM));
+      if (signingAlgorithm != null)
+      {
+         signer.setSigningAlgorithm(SigningAlgorithm.valueOf(signingAlgorithm));
+      }
+      String identity = blankToNull(props.getProperty(DKIM_IDENTITY));
+      if (identity != null)
+      {
+         signer.setIdentity(identity);
+      }
+      signer.setCheckDomainKey("true".equalsIgnoreCase(props.getProperty(DKIM_CHECK_DOMAIN_KEY)));
+      return signer;
+   }
+
+   private static String blankToNull(String value)
+   {
+      return value == null || value.trim().isEmpty() ? null : value;
    }
 
    /**

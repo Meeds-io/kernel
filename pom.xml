@@ -39,8 +39,6 @@
    <properties>
       <!-- PLF project dependencies -->
       <io.meeds.gatein.wci.version>7.3.x-maintenance-SNAPSHOT</io.meeds.gatein.wci.version>
-      <!-- 3rd party libraries versions -->
-      <subethasmtp.version>3.1.7</subethasmtp.version>
 
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
@@ -118,14 +116,6 @@
             <classifier>tests</classifier>
             <scope>test</scope>
             <version>${project.version}</version>
-         </dependency>
-
-         <!-- Other third party dependencies used in kernel only -->
-         <dependency>
-            <groupId>org.subethamail</groupId>
-            <artifactId>subethasmtp</artifactId>
-            <version>${subethasmtp.version}</version>
-            <scope>test</scope>
          </dependency>
       </dependencies>
    </dependencyManagement>
