@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.exoplatform.container.BaseContainerLifecyclePlugin;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.container.monitor.jvm.ServerStartupWaiter;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -56,7 +57,13 @@ public class QuartzSheduler implements Startable
 
    private static final String delegateClassProperty      = "org.quartz.jobStore.driverDelegateClass";
 
+   private static final String QUARTZ_STARTUP_SUBJECT     = "Quartz scheduled jobs";
+
    private final Scheduler scheduler_;
+
+   private volatile Thread starterThread;
+
+   private volatile boolean stopping;
 
    public QuartzSheduler(ExoContainerContext ctx, InitParams params) throws Exception
    {
@@ -92,20 +99,86 @@ public class QuartzSheduler implements Startable
          sf = new StdSchedulerFactory();
       }
       scheduler_ = sf.getScheduler();
-      
+
       // If the scheduler has already been started, it is necessary to put the scheduler
       // in standby mode to ensure that the jobs of the ExoContainer won't launched too early
       scheduler_.standby();
-      // This will launch the scheduler when all the components will be started  
+      // This will launch the scheduler once the FULL server startup is observed: not only
+      // this container's components, but also the sibling lifecycle plugins run after this
+      // one (the Kernel <-> Spring bridge finishing every Spring context) and the server
+      // HTTP connector, which Tomcat starts as the last startup step. Jobs released on
+      // "components started" alone run against a server that cannot answer the HTTP
+      // requests they may send to itself (OAuth/OIDC discovery, token issuance, MCP) —
+      // observed with the email sync jobs firing seconds before the connector was up.
+      // The wait MUST leave the startup thread: the connector starts only after the
+      // container startup completes, so waiting inline would deadlock the boot. When no
+      // HTTP connector is observable (unit tests, embedded runs, AJP-only servers) the
+      // release stays the legacy synchronous one — the asynchronous path is paid only
+      // where the wait is real, so environments without a connector keep the exact
+      // deterministic startup they always had.
       ctx.getContainer().addContainerLifecylePlugin(new BaseContainerLifecyclePlugin()
       {
 
          @Override
          public void startContainer(ExoContainer container) throws Exception
          {
-            scheduler_.start();
-         }         
+            if (ServerStartupWaiter.isHttpConnectorPending(container, QUARTZ_STARTUP_SUBJECT))
+            {
+               LOG.info("Quartz scheduler stays in standby until the full server startup, HTTP connector included");
+               starterThread = new Thread(() -> startSchedulerAfterFullServerStartup(container),
+                                          "quartz-scheduler-startup-" + ctx.getName());
+               starterThread.setDaemon(true);
+               starterThread.start();
+            }
+            else
+            {
+               scheduler_.start();
+            }
+         }
       });
+   }
+
+   private void startSchedulerAfterFullServerStartup(ExoContainer container)
+   {
+      try
+      {
+         ServerStartupWaiter.awaitServerStartup(container, QUARTZ_STARTUP_SUBJECT);
+      }
+      catch (InterruptedException e)
+      {
+         Thread.currentThread().interrupt();
+         LOG.info("Interrupted while waiting for the full server startup: the server is stopping,"
+             + " the Quartz scheduler stays in standby");
+         return;
+      }
+      catch (Throwable t) // NOSONAR an escaping error would silently leave every job unscheduled forever
+      {
+         // Fail open: a broken wait must not cost the platform its scheduler — better a
+         // job hitting a not-yet-ready endpoint than no scheduled job ever running
+         LOG.error("Unexpected error while waiting for the full server startup. Starting the Quartz scheduler right away", t);
+      }
+      if (stopping)
+      {
+         LOG.info("The server is stopping: the Quartz scheduler stays in standby");
+         return;
+      }
+      try
+      {
+         scheduler_.start();
+         LOG.info("Quartz scheduler started after the full server startup");
+      }
+      catch (SchedulerException e)
+      {
+         if (stopping)
+         {
+            LOG.debug("The Quartz scheduler was shut down while its startup release was in flight: normal on a"
+                + " server stopped before its startup completed", e);
+         }
+         else
+         {
+            LOG.error("Could not start the Quartz scheduler: no scheduled job will run", e);
+         }
+      }
    }
 
    public Scheduler getQuartzSheduler()
@@ -119,6 +192,25 @@ public class QuartzSheduler implements Startable
 
    public void stop()
    {
+      // Settle the race with the startup-release thread before shutting Quartz down: a
+      // start() landing after shutdown() throws, and a start() landing during shutdown
+      // would fire queued jobs against a stopping container. The bounded join is what
+      // actually closes the window -- the interrupt alone misses a starter already past
+      // its 'stopping' check and inside scheduler_.start()
+      stopping = true;
+      Thread starter = starterThread;
+      if (starter != null)
+      {
+         starter.interrupt();
+         try
+         {
+            starter.join(5000);
+         }
+         catch (InterruptedException e)
+         {
+            Thread.currentThread().interrupt();
+         }
+      }
       try
       {
          scheduler_.shutdown();

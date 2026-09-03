@@ -552,6 +552,20 @@ public class ExoContainer extends AbstractContainer
    }
 
    /**
+    * Indicates whether this container completed its startup: {@link #start()}
+    * ran to its end, container lifecycle plugins included, and the container
+    * was not disposed since. Same state as {@link #canBeStopped()}, under the
+    * name callers actually ask for. Note {@link PortalContainer} overrides
+    * this with its own (pre-existing, JMX-managed) started flag, which does
+    * not account for disposal.
+    * @return <code>true</code> if the container is started, <code>false</code> otherwise.
+    */
+   public boolean isStarted()
+   {
+      return !disposed.get() && started.get();
+   }
+
+   /**
     * Indicates whether or not the container can be disposed
     * @return <code>true</code> if it can be disposed, <code>false</code> otherwise.
     */
