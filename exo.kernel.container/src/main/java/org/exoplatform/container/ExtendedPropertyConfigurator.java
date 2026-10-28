@@ -1,7 +1,7 @@
 /**
  * This file is part of the Meeds project (https://meeds.io/).
  *
- * Copyright (C) 2020 - 2025 Meeds Association contact@meeds.io
+ * Copyright (C) 2020 - 2026 Meeds Association contact@meeds.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,11 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import org.picocontainer.Startable;
@@ -70,6 +74,11 @@ import org.picocontainer.Startable;
  * <br>
  * Note that <i>properties-param</i> entries and <i>properties.url</i> optional and can be omitted.
  * Note that if a path in <i>properties.url</i> doesn't exist it will be skipped with an info message
+ * <br>
+ * A property value of the form <i>secret-file:/path/to/file</i> in a file of <i>properties.urls</i>
+ * is replaced by the content of that file (trailing whitespace removed), which allows to use
+ * Docker secrets, e.g. <i>exo.db.password=secret-file:/run/secrets/exo_db_password</i>.
+ * A missing or unreadable file is logged and the property is not set.
  *
  */
 public class ExtendedPropertyConfigurator extends PropertyConfigurator implements Startable {
@@ -78,6 +87,11 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
    * The logger.
    */
   private static final Log LOG = ExoLogger.getExoLogger(ExtendedPropertyConfigurator.class);
+
+  /**
+   * Prefix of a property value referencing a file (ex: a Docker secret) holding the real value.
+   */
+  public static final String SECRET_FILE_PREFIX = "secret-file:";
 
   /**
    * Constructor used by ExoContainer.
@@ -104,8 +118,10 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
             if (props != null) {
               for (Map.Entry<String, String> entry : props.entrySet()) {
                 String propertyName = entry.getKey();
-                String propertyValue = entry.getValue();
-                PropertyManager.setProperty(propertyName, propertyValue);
+                String propertyValue = resolveSecretFile(propertyName, entry.getValue());
+                if (propertyValue != null) {
+                  PropertyManager.setProperty(propertyName, propertyValue);
+                }
               }
             }
           } catch (FileNotFoundException fne) {
@@ -116,6 +132,29 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
           }
         }
       }
+    }
+  }
+
+  /**
+   * Replaces a <i>secret-file:</i> value by the content of the referenced file.
+   * The content is never logged.
+   * @param name the property name, used for logging only
+   * @param value the raw property value
+   * @return the value unchanged if it isn't a secret file reference, the file content
+   *         without trailing whitespace otherwise, or null if the file cannot be read
+   */
+  static String resolveSecretFile(String name, String value) {
+    if (value == null || !value.startsWith(SECRET_FILE_PREFIX)) {
+      return value;
+    }
+    String path = value.substring(SECRET_FILE_PREFIX.length()).trim();
+    try {
+      String content = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+      LOG.info("Loaded the value of property " + name + " from secret file " + path);
+      return content.stripTrailing();
+    } catch (IOException | RuntimeException e) {
+      LOG.error("Cannot read secret file " + path + " for property " + name + ", the property is not set", e);
+      return null;
     }
   }
 
