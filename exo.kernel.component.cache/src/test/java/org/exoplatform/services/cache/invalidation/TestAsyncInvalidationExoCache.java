@@ -44,8 +44,8 @@ public class TestAsyncInvalidationExoCache extends TestCase
    @Override
    protected void setUp() throws Exception
    {
-      ReplicatedCache writerNode = new ReplicatedCache();
-      ReplicatedCache readerNode = new ReplicatedCache();
+      ReplicatedCache<String> writerNode = new ReplicatedCache<>();
+      ReplicatedCache<String> readerNode = new ReplicatedCache<>();
       writerNode.other = readerNode;
       readerNode.other = writerNode;
       writer = new AsyncInvalidationExoCache<>(writerNode);
@@ -92,6 +92,27 @@ public class TestAsyncInvalidationExoCache extends TestCase
       assertNull(reader.get(KEY));
    }
 
+   public void testClearOnANodeEvictsTheEntriesOfTheOthers()
+   {
+      reader.putLocal(KEY, "former");
+      reader.putLocal("other", "former");
+
+      writer.clearCache();
+
+      assertNull(reader.get(KEY));
+      assertNull(reader.get("other"));
+   }
+
+   public void testClearAgainEvictsTheEntriesLoadedSince()
+   {
+      writer.clearCache();
+      reader.putLocal(KEY, "former");
+
+      writer.clearCache();
+
+      assertNull(reader.get(KEY));
+   }
+
    public void testEntryOfTheOtherNodesIsKeptWithoutRemove()
    {
       reader.putLocal(KEY, "kept");
@@ -102,11 +123,12 @@ public class TestAsyncInvalidationExoCache extends TestCase
    }
 
    /**
-    * The replicated cache of a node, which sends its puts and removes to the other node.
+    * The replicated cache of a node, which sends its puts and removes to the other node. Generic in its key, as the
+    * Infinispan cache is: it takes the keys the invalidation itself puts, whatever the type of the cached keys.
     */
-   private static class ReplicatedCache extends ConcurrentFIFOExoCache<String, HashCode<String>>
+   private static class ReplicatedCache<K extends Serializable> extends ConcurrentFIFOExoCache<K, HashCode<String>>
    {
-      private ReplicatedCache other;
+      private ReplicatedCache<K> other;
 
       private boolean received;
 
@@ -116,7 +138,7 @@ public class TestAsyncInvalidationExoCache extends TestCase
       }
 
       @Override
-      public void put(String key, HashCode<String> value)
+      public void put(K key, HashCode<String> value)
       {
          super.put(key, value);
          if (!received)

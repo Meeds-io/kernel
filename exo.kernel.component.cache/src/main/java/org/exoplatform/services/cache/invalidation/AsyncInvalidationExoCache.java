@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This implementation of {@link ExoCache} will behave exactly the same way as {@link ConcurrentFIFOExoCache}
@@ -55,6 +56,15 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
     private final HashCode<V> invalidationHashCodeObject = new HashCode<V>((V) new String("NULL_OBJECT_INVALIDATION"));
 
     private final int invalidationHashCode = invalidationHashCodeObject.hashCode();
+
+    /**
+     * The key under which a clear reaches the other nodes: a clear of the replicated cache notifies no node, a put
+     * does
+     */
+    enum ClearMarker
+    {
+        INSTANCE
+    }
 
     public AsyncInvalidationExoCache(ExoCache<K, HashCode<V>> replicatedCache)
     {
@@ -88,6 +98,16 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
     {
         LOG.debug(getName() + " PUT Local  KEY " + key);
         super.put(key, value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void clearCache()
+    {
+        LOG.debug(getName() + "  CLEAR");
+        super.clearCache();
+        // A new hash at each clear, so that every clear is a change the other nodes are notified of
+        replicatedCache.put((K) ClearMarker.INSTANCE, new HashCode<V>((V) UUID.randomUUID().toString()));
     }
 
     @Override
@@ -161,6 +181,13 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
         @Override
         public void onPut(CacheListenerContext context, K key, HashCode<V> obj) throws Exception
         {
+            if (key == ClearMarker.INSTANCE)
+            {
+                // A node cleared its cache, this one or another: the local entries go, without a clear of the others
+                LOG.debug(getName() + " ON PUT clear marker");
+                AsyncInvalidationExoCache.super.clearCache();
+                return;
+            }
             V value = obj == null ? null : obj.getValue();
             if (value == null)
             {
