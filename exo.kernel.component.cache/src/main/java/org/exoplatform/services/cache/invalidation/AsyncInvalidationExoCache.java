@@ -97,10 +97,11 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
         V value =  super.remove(key);
         HashCode<V> hashCode = replicatedCache.get(key);
 
-        if(value != null && hashCode == null)
+        if (hashCode == null)
         {
-            //entry exist only on local cache , use invalidationHashCodeObject to update remote cache
-            replicatedCache.put((K) key, invalidationHashCodeObject);  ;
+            // The entry exists only in the local caches, of this node or of the others: a loader puts it there and the
+            // remove of a key the replicated cache does not hold reaches no node, so invalidationHashCodeObject does
+            replicatedCache.put((K) key, invalidationHashCodeObject);
         }
         else
         {
