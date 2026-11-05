@@ -68,4 +68,15 @@ public class TestConcurrentFIFOExoCache {
 
     Assert.assertEquals(LIMIT, cache.getCacheSize());
   }
+
+  @Test(timeout = 10000)
+  public void testNegativeSizeBoundsNothing() {
+    ConcurrentFIFOExoCache<String, String> cache = new ConcurrentFIFOExoCache<>("unbounded", -1);
+
+    cache.put("first", "value");
+    cache.put("second", "value");
+
+    Assert.assertEquals(2, cache.getCacheSize());
+    Assert.assertEquals("value", cache.get("first"));
+  }
 }

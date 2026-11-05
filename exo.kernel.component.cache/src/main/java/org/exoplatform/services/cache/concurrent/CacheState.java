@@ -117,8 +117,9 @@ public class CacheState<K extends Serializable, V> {
     // Add to the queue
     queue.add(nextRef);
 
-    // Perform eviction from queue
-    ArrayList<ObjectRef<K, V>> evictedRefs = queue.trim(config.maxSize);
+    // Perform eviction from queue: a negative size bounds nothing, as for an
+    // Infinispan cache, and no queue can be trimmed down to it
+    ArrayList<ObjectRef<K, V>> evictedRefs = config.maxSize < 0 ? null : queue.trim(config.maxSize);
     if (evictedRefs != null && !evictedRefs.isEmpty()) {
       for (ObjectRef<K, V> evictedRef : evictedRefs) {
         // We remove it from the map only if it was the same entry
