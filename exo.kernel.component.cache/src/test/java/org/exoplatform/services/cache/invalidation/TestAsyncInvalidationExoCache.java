@@ -18,16 +18,11 @@
  */
 package org.exoplatform.services.cache.invalidation;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 import junit.framework.TestCase;
 
-import org.exoplatform.services.cache.concurrent.ConcurrentFIFOExoCache;
+import org.exoplatform.services.cache.CachedObjectSelector;
+import org.exoplatform.services.cache.ExoCache;
+import org.exoplatform.services.cache.ObjectCacheInfo;
 
 /**
  * The invalidation of an entry between two nodes, each with its own replicated cache: a hash reaches the other node
@@ -113,6 +108,65 @@ public class TestAsyncInvalidationExoCache extends TestCase
       assertNull(reader.get(KEY));
    }
 
+   public void testSelectionOnANodeEvictsTheSelectedEntriesOfTheOthers() throws Exception
+   {
+      reader.putLocal(KEY, "former");
+      reader.putLocal("other", "kept");
+
+      writer.select(new KeySelector(KEY));
+
+      assertNull(reader.get(KEY));
+      assertEquals("kept", reader.get("other"));
+   }
+
+   public void testSelectionKeepsTheEntriesOfItsNodeItDoesNotSelect() throws Exception
+   {
+      writer.putLocal(KEY, "former");
+      writer.putLocal("other", "kept");
+
+      writer.select(new KeySelector(KEY));
+
+      assertNull(writer.get(KEY));
+      assertEquals("kept", writer.get("other"));
+   }
+
+   public void testSelectionAgainEvictsTheEntriesLoadedSince() throws Exception
+   {
+      writer.select(new KeySelector(KEY));
+      reader.putLocal(KEY, "former");
+
+      writer.select(new KeySelector(KEY));
+
+      assertNull(reader.get(KEY));
+   }
+
+   public void testSelectionOfAnotherKindClearsTheOtherNodes() throws Exception
+   {
+      reader.putLocal(KEY, "former");
+      reader.putLocal("other", "former");
+      writer.putLocal("other", "kept");
+
+      writer.select(new CachedObjectSelector<String, String>()
+      {
+         @Override
+         public boolean select(String key, ObjectCacheInfo<? extends String> ocinfo)
+         {
+            return KEY.equals(key);
+         }
+
+         @Override
+         public void onSelect(ExoCache<? extends String, ? extends String> cache, String key,
+            ObjectCacheInfo<? extends String> ocinfo)
+         {
+            cache.remove(key);
+         }
+      });
+
+      assertNull(reader.get(KEY));
+      assertNull(reader.get("other"));
+      assertEquals("kept", writer.get("other"));
+   }
+
    public void testEntryOfTheOtherNodesIsKeptWithoutRemove()
    {
       reader.putLocal(KEY, "kept");
@@ -120,76 +174,5 @@ public class TestAsyncInvalidationExoCache extends TestCase
       writer.putLocal(KEY, "other");
 
       assertEquals("kept", reader.get(KEY));
-   }
-
-   /**
-    * The replicated cache of a node, which sends its puts and removes to the other node. Generic in its key, as the
-    * Infinispan cache is: it takes the keys the invalidation itself puts, whatever the type of the cached keys.
-    */
-   private static class ReplicatedCache<K extends Serializable> extends ConcurrentFIFOExoCache<K, HashCode<String>>
-   {
-      private ReplicatedCache<K> other;
-
-      private boolean received;
-
-      private ReplicatedCache()
-      {
-         super("invalidated", 100);
-      }
-
-      @Override
-      public void put(K key, HashCode<String> value)
-      {
-         super.put(key, value);
-         if (!received)
-         {
-            other.receive(() -> other.put(key, overTheWire(value)));
-         }
-      }
-
-      @Override
-      public HashCode<String> remove(Serializable key)
-      {
-         HashCode<String> value = super.remove(key);
-         if (!received)
-         {
-            other.receive(() -> other.remove(key));
-         }
-         return value;
-      }
-
-      private void receive(Runnable command)
-      {
-         received = true;
-         try
-         {
-            command.run();
-         }
-         finally
-         {
-            received = false;
-         }
-      }
-
-      @SuppressWarnings("unchecked")
-      private static HashCode<String> overTheWire(HashCode<String> value)
-      {
-         try
-         {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            try (ObjectOutputStream out = new ObjectOutputStream(bytes))
-            {
-               out.writeObject(value);
-            }
-            try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())))
-            {
-               return (HashCode<String>)in.readObject();
-            }
-         }
-         catch (IOException | ClassNotFoundException e)
-         {
-            throw new IllegalStateException(e);
-         }
-      }
    }
 }
