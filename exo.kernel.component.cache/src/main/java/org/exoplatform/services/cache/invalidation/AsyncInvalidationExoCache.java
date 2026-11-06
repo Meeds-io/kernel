@@ -20,7 +20,10 @@ package org.exoplatform.services.cache.invalidation;
 
 import org.exoplatform.services.cache.CacheListener;
 import org.exoplatform.services.cache.CacheListenerContext;
+import org.exoplatform.services.cache.CachedObjectSelector;
+import org.exoplatform.services.cache.ClusterCachedObjectSelector;
 import org.exoplatform.services.cache.ExoCache;
+import org.exoplatform.services.cache.ObjectCacheInfo;
 import org.exoplatform.services.cache.concurrent.ConcurrentFIFOExoCache;
 import org.exoplatform.services.cache.concurrent.ListenerContext;
 import org.exoplatform.services.log.ExoLogger;
@@ -30,6 +33,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This implementation of {@link ExoCache} will behave exactly the same way as {@link ConcurrentFIFOExoCache}
@@ -91,22 +95,73 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public void clearCache()
+    {
+        LOG.debug(getName() + "  CLEAR");
+        super.clearCache();
+        replicatedCache.put((K) ClearMarker.INSTANCE, newChange());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void select(CachedObjectSelector<? super K, ? super V> selector) throws Exception
+    {
+        if (selector instanceof ClusterCachedObjectSelector)
+        {
+            LOG.debug(getName() + "  SELECT " + selector);
+            removeSelected(selector);
+            // The other nodes hold entries this one does not: each of them removes the ones it selects
+            replicatedCache.put((K) selector, newChange());
+        }
+        else
+        {
+            super.select(selector);
+            // A selector of another kind does not reach the other nodes: they lose all their entries instead
+            replicatedCache.put((K) ClearMarker.INSTANCE, newChange());
+        }
+    }
+
+    /**
+     * Removes the entries of this node the selector selects, without notifying the other nodes
+     */
+    private void removeSelected(CachedObjectSelector<? super K, ? super V> selector) throws Exception
+    {
+        super.select(new CachedObjectSelector<K, V>()
+        {
+            @Override
+            public boolean select(K key, ObjectCacheInfo<? extends V> ocinfo)
+            {
+                return selector.select(key, ocinfo);
+            }
+
+            @Override
+            public void onSelect(ExoCache<? extends K, ? extends V> cache, K key, ObjectCacheInfo<? extends V> ocinfo)
+            {
+                removeLocal(key);
+            }
+        });
+    }
+
+    /**
+     * @return a new hash at each call, so that every change put under the same key is one the other nodes are
+     *         notified of
+     */
+    @SuppressWarnings("unchecked")
+    private HashCode<V> newChange()
+    {
+        return new HashCode<V>((V) UUID.randomUUID().toString());
+    }
+
+    @Override
     public V remove(Serializable key) throws NullPointerException
     {
         LOG.debug(getName() + "  Remove KEY " + key);
         V value =  super.remove(key);
-        HashCode<V> hashCode = replicatedCache.get(key);
-
-        if(value != null && hashCode == null)
-        {
-            //entry exist only on local cache , use invalidationHashCodeObject to update remote cache
-            replicatedCache.put((K) key, invalidationHashCodeObject);  ;
-        }
-        else
-        {
-            //remove entry from synchronized cache
-            replicatedCache.remove(key);
-        }
+        // A remove reaches only the nodes whose replicated cache still holds the key, and each node evicts its own
+        // keys: a loader put the entry in the local cache of a node whatever its replicated cache holds. A put reaches
+        // every node, so invalidationHashCodeObject does
+        replicatedCache.put((K) key, invalidationHashCodeObject);
         return value;
     }
 
@@ -158,9 +213,31 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void onPut(CacheListenerContext context, K key, HashCode<V> obj) throws Exception
         {
             V value = obj == null ? null : obj.getValue();
+            if (key == ClearMarker.INSTANCE)
+            {
+                // Another node cleared its cache: the local entries go, without a clear of the others. A change
+                // reaches the other nodes as its hash alone: the node that holds its value made it, and applied it
+                if (value == null)
+                {
+                    LOG.debug(getName() + " ON PUT clear marker");
+                    AsyncInvalidationExoCache.super.clearCache();
+                }
+                return;
+            }
+            if (key instanceof ClusterCachedObjectSelector)
+            {
+                // Another node selected entries to remove: the local ones it selects go, from this node only
+                if (value == null)
+                {
+                    LOG.debug(getName() + " ON PUT selection " + key);
+                    removeSelected((CachedObjectSelector<? super K, ? super V>)key);
+                }
+                return;
+            }
             if (value == null)
             {
                 if(obj.hashCode() == invalidationHashCode)
