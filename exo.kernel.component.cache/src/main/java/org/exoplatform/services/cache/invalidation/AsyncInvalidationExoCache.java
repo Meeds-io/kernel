@@ -158,19 +158,10 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
     {
         LOG.debug(getName() + "  Remove KEY " + key);
         V value =  super.remove(key);
-        HashCode<V> hashCode = replicatedCache.get(key);
-
-        if (hashCode == null)
-        {
-            // The entry exists only in the local caches, of this node or of the others: a loader puts it there and the
-            // remove of a key the replicated cache does not hold reaches no node, so invalidationHashCodeObject does
-            replicatedCache.put((K) key, invalidationHashCodeObject);
-        }
-        else
-        {
-            //remove entry from synchronized cache
-            replicatedCache.remove(key);
-        }
+        // A remove reaches only the nodes whose replicated cache still holds the key, and each node evicts its own
+        // keys: a loader put the entry in the local cache of a node whatever its replicated cache holds. A put reaches
+        // every node, so invalidationHashCodeObject does
+        replicatedCache.put((K) key, invalidationHashCodeObject);
         return value;
     }
 
