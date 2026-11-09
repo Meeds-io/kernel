@@ -196,6 +196,79 @@ public class TestAsyncInvalidationExoCache extends TestCase
       assertEquals(1, localPuts.get());
    }
 
+   public void testPutNotifiesTheListenersOfItsNodeOnce()
+   {
+      AtomicInteger puts = new AtomicInteger();
+      writer.addCacheListener(new Listener()
+      {
+         @Override
+         public void onPut(CacheListenerContext context, String key, String obj)
+         {
+            puts.incrementAndGet();
+         }
+      });
+
+      writer.put(KEY, "written");
+
+      // The hash of the put reaches the replicated cache of its node too, with its value
+      assertEquals(1, puts.get());
+      assertEquals("written", writer.get(KEY));
+   }
+
+   public void testPutOfTheValueTheOtherNodeHoldsNotifiesItsListenersOfNothing()
+   {
+      reader.putLocal(KEY, "written");
+      AtomicInteger puts = new AtomicInteger();
+      AtomicInteger removes = new AtomicInteger();
+      reader.addCacheListener(new Listener()
+      {
+         @Override
+         public void onPut(CacheListenerContext context, String key, String obj)
+         {
+            puts.incrementAndGet();
+         }
+
+         @Override
+         public void onRemove(CacheListenerContext context, String key, String obj)
+         {
+            removes.incrementAndGet();
+         }
+      });
+
+      // A put of this node comes back so too when the other node owns the segment of its key
+      writer.put(KEY, "written");
+
+      assertEquals("written", reader.get(KEY));
+      assertEquals(0, puts.get());
+      assertEquals(0, removes.get());
+   }
+
+   public void testRemoveNotifiesTheListenersOfARemoveOnly()
+   {
+      writer.putLocal(KEY, "loaded");
+      AtomicInteger puts = new AtomicInteger();
+      AtomicInteger removes = new AtomicInteger();
+      writer.addCacheListener(new Listener()
+      {
+         @Override
+         public void onPut(CacheListenerContext context, String key, String obj)
+         {
+            puts.incrementAndGet();
+         }
+
+         @Override
+         public void onRemove(CacheListenerContext context, String key, String obj)
+         {
+            removes.incrementAndGet();
+         }
+      });
+
+      writer.remove(KEY);
+
+      assertEquals(0, puts.get());
+      assertEquals(1, removes.get());
+   }
+
    public void testLoadOnANodeWhoseListenerClearsOnAPutKeepsTheEntriesOfTheOthers()
    {
       // A listener that clears its cache on every write, as a cache of lists of entries does

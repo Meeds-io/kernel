@@ -239,33 +239,34 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
                 }
                 return;
             }
-            if (value == null)
+            if (value != null)
             {
-                if(obj.hashCode() == invalidationHashCode)
-                {
-                    LOG.debug(getName() + " ON PUT invalidationHashCode KEY " + key+ " hashCode "+ obj.hashCode());
-                    removeLocal(key);
-                    return;
-                }
-
-                // we assume that it is a remote put since the value is not inside the HashCode object
-                V currentValue = get(key);
-                if (currentValue != null && obj != null && currentValue.hashCode() == obj.hashCode())
-                {
-                    LOG.debug(getName() + " ON PUT equal hash KEY " + key+ " hashCode "+ obj.hashCode());
-
-                    // We assume that it is the same value so we don't change the local cache
-                    value = currentValue;
-                }
-                else
-                {
-                    LOG.debug(getName() + " ON PUT not equal hash KEY " + key+ " hashCode "+ obj.hashCode());
-
-                    value =  null;
-                    // A new value has been added to the cache so we invalidate the local one
-                    removeLocal(key);
-                }
+                // A change of this node, which applied it and notified its listeners: a hash reaches the other nodes
+                // without its value
+                return;
             }
+            if(obj.hashCode() == invalidationHashCode)
+            {
+                LOG.debug(getName() + " ON PUT invalidationHashCode KEY " + key+ " hashCode "+ obj.hashCode());
+                removeLocal(key);
+                return;
+            }
+
+            // we assume that it is a remote put since the value is not inside the HashCode object
+            V currentValue = get(key);
+            if (currentValue != null && currentValue.hashCode() == obj.hashCode())
+            {
+                LOG.debug(getName() + " ON PUT equal hash KEY " + key+ " hashCode "+ obj.hashCode());
+
+                // We assume that it is the same value: nothing changes locally, so no listener is notified. The put
+                // of this node comes back so too when another node owns the segment of its key and applies it first
+                return;
+            }
+            LOG.debug(getName() + " ON PUT not equal hash KEY " + key+ " hashCode "+ obj.hashCode());
+
+            value =  null;
+            // A new value has been added to the cache so we invalidate the local one
+            removeLocal(key);
 
             for (ListenerContext<? super K, ? super V> listener : getListeners() )
                 try
