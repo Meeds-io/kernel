@@ -20,6 +20,10 @@ package org.exoplatform.services.cache.invalidation;
 
 import junit.framework.TestCase;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.exoplatform.services.cache.CacheListener;
+import org.exoplatform.services.cache.CacheListenerContext;
 import org.exoplatform.services.cache.CachedObjectSelector;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.cache.ObjectCacheInfo;
@@ -167,6 +171,56 @@ public class TestAsyncInvalidationExoCache extends TestCase
       assertEquals("kept", writer.get("other"));
    }
 
+   public void testLoadNotifiesTheListenersOfALocalPut()
+   {
+      AtomicInteger puts = new AtomicInteger();
+      AtomicInteger localPuts = new AtomicInteger();
+      writer.addCacheListener(new Listener()
+      {
+         @Override
+         public void onPut(CacheListenerContext context, String key, String obj)
+         {
+            puts.incrementAndGet();
+         }
+
+         @Override
+         public void onPutLocal(CacheListenerContext context, String key, String obj)
+         {
+            localPuts.incrementAndGet();
+         }
+      });
+
+      writer.putLocal(KEY, "loaded");
+
+      assertEquals(0, puts.get());
+      assertEquals(1, localPuts.get());
+   }
+
+   public void testLoadOnANodeWhoseListenerClearsOnAPutKeepsTheEntriesOfTheOthers()
+   {
+      // A listener that clears its cache on every write, as a cache of lists of entries does
+      writer.addCacheListener(new Listener()
+      {
+         @Override
+         public void onPut(CacheListenerContext context, String key, String obj)
+         {
+            writer.clearCache();
+         }
+
+         @Override
+         public void onPutLocal(CacheListenerContext context, String key, String obj)
+         {
+            // A load changes nothing to clear
+         }
+      });
+      reader.putLocal(KEY, "kept");
+
+      writer.putLocal("other", "loaded");
+
+      assertEquals("kept", reader.get(KEY));
+      assertEquals("loaded", writer.get("other"));
+   }
+
    public void testEntryOfTheOtherNodesIsKeptWithoutRemove()
    {
       reader.putLocal(KEY, "kept");
@@ -174,5 +228,32 @@ public class TestAsyncInvalidationExoCache extends TestCase
       writer.putLocal(KEY, "other");
 
       assertEquals("kept", reader.get(KEY));
+   }
+
+   private abstract static class Listener implements CacheListener<String, String>
+   {
+      @Override
+      public void onExpire(CacheListenerContext context, String key, String obj)
+      {
+         // Not observed
+      }
+
+      @Override
+      public void onRemove(CacheListenerContext context, String key, String obj)
+      {
+         // Not observed
+      }
+
+      @Override
+      public void onGet(CacheListenerContext context, String key, String obj)
+      {
+         // Not observed
+      }
+
+      @Override
+      public void onClearCache(CacheListenerContext context)
+      {
+         // Not observed
+      }
    }
 }

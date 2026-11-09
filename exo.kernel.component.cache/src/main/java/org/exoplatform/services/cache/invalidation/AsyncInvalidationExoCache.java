@@ -91,7 +91,8 @@ public class AsyncInvalidationExoCache<K extends Serializable, V> extends Concur
     public void putLocal(K key, V value) throws NullPointerException
     {
         LOG.debug(getName() + " PUT Local  KEY " + key);
-        super.put(key, value);
+        // A load: the listeners are notified of a local put, which they may not handle as a write
+        super.putLocal(key, value);
     }
 
     @Override
