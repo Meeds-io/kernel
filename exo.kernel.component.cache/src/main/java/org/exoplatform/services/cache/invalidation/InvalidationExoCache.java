@@ -49,7 +49,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <li>Node #2 re-loads key1 and puts (key1, value1) into the cache</li>
  * <li>On cluster node #1 key1 is invalidated, so we get back to step #1</li>
  * </ul>
- * 
+ * <p>
+ * A clear and a selection of a {@link ClusterCachedObjectSelector} reach the other nodes as entries of the delegate
+ * cache, keyed by the marker of a clear or by the selector. Each stays there until it expires or the cache evicts it,
+ * and takes one slot of its size, as the hash of a key does: one entry for the clears, one per distinct selection,
+ * equal selectors sharing theirs. A full cache evicts its oldest entries, a marker or a hash alike, and a key whose
+ * hash is evicted reads as missing on that node until it is loaded again.
  */
 public class InvalidationExoCache<K extends Serializable, V> implements ExoCache<K, V>,
    CacheListener<K, HashCode<V>>

@@ -41,7 +41,12 @@ import java.util.UUID;
  * then it will be invalidated over the cluster asynchronously to limit the performance impact
  * on the local cluster node.
  * This class can be used as a drop-in replacement for {@link ConcurrentFIFOExoCache} in a cluster environment.
- *
+ * <p>
+ * A clear and a selection of a {@link ClusterCachedObjectSelector} reach the other nodes as entries of the replicated
+ * cache, keyed by the marker of a clear or by the selector. Each stays there until it expires or the replicated cache
+ * evicts it, and takes one slot of its size, as the hash of a key does: one entry for the clears, one per distinct
+ * selection, equal selectors sharing theirs. A full replicated cache evicts its oldest entries, a marker or a hash
+ * alike; an evicted hash leaves the local value in place, and the next change of its key reaches every node as a put.
  */
 
 public class AsyncInvalidationExoCache<K extends Serializable, V> extends ConcurrentFIFOExoCache<K, V>
