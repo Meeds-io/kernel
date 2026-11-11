@@ -78,6 +78,8 @@ import org.picocontainer.Startable;
  * A property value of the form <i>secret-file:/path/to/file</i> in a file of <i>properties.urls</i>
  * is replaced by the content of that file (trailing line breaks removed), which allows to use
  * Docker secrets, e.g. <i>exo.email.smtp.password=secret-file:/run/secrets/smtp_password</i>.
+ * A <i>${...}</i> reference to such a property is resolved to the secret only from a later file of
+ * <i>properties.urls</i>; in the same file it gets the <i>secret-file:</i> reference itself.
  * By default a missing or unreadable file is logged and the entry is ignored: the property keeps
  * any value set earlier (by a previous file of <i>properties.urls</i>), or its default.
  * When the property <i>exo.properties.secretFile.strict</i> is <i>true</i>, it fails instead the
