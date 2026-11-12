@@ -191,17 +191,6 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
   }
 
   /**
-   * Thrown in strict mode when a secret file cannot be read.
-   */
-  static class SecretFileException extends IllegalStateException {
-    private static final long serialVersionUID = 1L;
-
-    SecretFileException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-
-  /**
    * Register all properties defined as <i>properties-param</i> in the {@link org.exoplatform.commons.utils.PropertyManager}.
    * <i>properties</i> entry isn't processed here but done by the parent {@link org.exoplatform.container.PropertyConfigurator}.
    * @param params The list of InitParams to register

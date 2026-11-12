@@ -104,7 +104,7 @@ public class TestExtendedPropertyConfiguratorSecretFile extends TestCase {
     try {
       ExtendedPropertyConfigurator.resolveSecretFile("p", "secret-file:/does/not/exist", true);
       fail("An unreadable secret must fail in strict mode");
-    } catch (ExtendedPropertyConfigurator.SecretFileException e) {
+    } catch (SecretFileException e) {
       assertTrue(e.getMessage().contains("/does/not/exist"));
     }
     // Strict mode doesn't change what a readable secret or a plain value gives
@@ -125,7 +125,7 @@ public class TestExtendedPropertyConfiguratorSecretFile extends TestCase {
       try {
         newConfigurator(props);
         fail("An unreadable secret must fail the startup in strict mode");
-      } catch (ExtendedPropertyConfigurator.SecretFileException e) {
+      } catch (SecretFileException e) {
         assertTrue(e.getMessage().contains(earlier));
         assertEquals("kept", PropertyManager.getProperty(earlier));
       }
@@ -156,7 +156,7 @@ public class TestExtendedPropertyConfiguratorSecretFile extends TestCase {
       try {
         newConfigurator(first, second);
         fail("An unreadable secret must fail the startup when an earlier file sets the strict flag");
-      } catch (ExtendedPropertyConfigurator.SecretFileException e) {
+      } catch (SecretFileException e) {
         assertTrue(e.getMessage().contains(missing));
       }
     } finally {
