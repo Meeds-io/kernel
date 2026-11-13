@@ -135,6 +135,25 @@ public class TestPersistedQuartzScheduler extends TestCase {
         assertEquals("runtimejob", jobs.get(0).getKey().getName());
     }
 
+    public void testAJobWhoseCronBecomesAPeriodIsRescheduled() throws Exception {
+        JobInfo job = new JobInfo("switchingjob", JobSchedulerService.RUNTIME_JOB_GROUP, AJob.class);
+        jobSchedulerService.addCronJob(job, "0 0 5 * * ?");
+
+        jobSchedulerService.addPeriodJob(job, new PeriodInfo(new Date(System.currentTimeMillis() + 1000000), null, 0,
+                                                              3600000));
+
+        org.quartz.Trigger[] triggers = jobSchedulerService.getTriggersOfJob("switchingjob",
+                                                                             JobSchedulerService.RUNTIME_JOB_GROUP);
+        assertEquals(1, triggers.length);
+        assertTrue(triggers[0] instanceof org.quartz.SimpleTrigger);
+
+        jobSchedulerService.addCronJob(job, "0 0 5 * * ?");
+
+        triggers = jobSchedulerService.getTriggersOfJob("switchingjob", JobSchedulerService.RUNTIME_JOB_GROUP);
+        assertEquals(1, triggers.length);
+        assertTrue(triggers[0] instanceof org.quartz.CronTrigger);
+    }
+
     private String[] splitWithSQLDelimiter(String resource) {
         if (resource.startsWith("/*$DELIMITER:")) {
             try {

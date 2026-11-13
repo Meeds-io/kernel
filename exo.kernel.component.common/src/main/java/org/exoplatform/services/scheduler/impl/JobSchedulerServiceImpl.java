@@ -222,6 +222,12 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
     * @param jobTrigger2 new configuration job Trigger
     */
    private static boolean equals(Trigger jobTrigger1, Trigger jobTrigger2) {
+       if (jobTrigger1 != null && jobTrigger2 != null
+           && ((jobTrigger1 instanceof CronTrigger) != (jobTrigger2 instanceof CronTrigger)
+               || (jobTrigger1 instanceof SimpleTrigger) != (jobTrigger2 instanceof SimpleTrigger))) {
+           // A cron job turned into a period job, or the other way round
+           return false;
+       }
        if (jobTrigger1 instanceof CronTrigger && jobTrigger2 instanceof CronTrigger) { //Compare Cron Job Trigger
            if (!((CronTrigger) jobTrigger1).getCronExpression().equalsIgnoreCase(((CronTrigger) jobTrigger2).getCronExpression())) {
                return false;
