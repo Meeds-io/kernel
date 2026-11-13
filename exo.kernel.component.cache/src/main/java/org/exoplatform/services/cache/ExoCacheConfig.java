@@ -263,6 +263,8 @@ public class ExoCacheConfig implements Cloneable
 
    public void setCacheMode(CacheMode cacheMode)
    {
+      // The mode is read again from its name, which a configuration file sets otherwise
+      this.cacheMode = cacheMode == null ? null : cacheMode.name();
       this.topology = cacheMode;
    }
 

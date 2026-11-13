@@ -32,8 +32,10 @@ import org.exoplatform.services.log.Log;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -51,7 +53,10 @@ public class CacheServiceImpl implements CacheService
 
    private final ExoCacheFactory DEFAULT_FACTORY = new SimpleExoCacheFactory();
 
-   private final HashMap<String, ExoCacheConfig> configs_ = new HashMap<String, ExoCacheConfig>();
+   /**
+    * Read and written by the request threads too: a Spring cache is declared when it is first used
+    */
+   private final Map<String, ExoCacheConfig> configs_ = Collections.synchronizedMap(new HashMap<>());
 
    private final ConcurrentHashMap<String, FutureExoCacheCreationTask> cacheMap_ =
       new ConcurrentHashMap<String, FutureExoCacheCreationTask>();
