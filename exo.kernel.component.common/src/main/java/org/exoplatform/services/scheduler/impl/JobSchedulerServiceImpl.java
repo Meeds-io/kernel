@@ -680,9 +680,13 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
    {
       try
       {
-         //Remove the list persisted jobs (jobs removed from the conf)
+         //Remove the list persisted jobs (jobs removed from the conf), but the jobs registered once the container started
+         String runtimeGroup = getGroupName(RUNTIME_JOB_GROUP);
          for (JobKey jobKey : persistedJobKeyList ){
-            scheduler_.deleteJob(jobKey);
+            if (!runtimeGroup.equals(jobKey.getGroup()))
+            {
+               scheduler_.deleteJob(jobKey);
+            }
          }
          // Ensure that only one JobEnvironmentConfigListener will be registered
          while (removeGlobalJobListener(JobEnvironmentConfigListener.NAME));

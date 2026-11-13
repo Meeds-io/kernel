@@ -43,6 +43,14 @@ import java.util.List;
 @RESTEndpoint(path = "JobSchedulerService")
 public interface JobSchedulerService
 {
+   /**
+    * The group of the jobs registered once the container started, such as the scheduled methods of the Spring
+    * contexts. When it starts, the service deletes the stored jobs that no plugin registered before it, but keeps
+    * those of this group: their registrar registers them again once the container started, and a job it no longer
+    * declares stays stored until it is removed with {@link #removeJob(JobInfo)}.
+    */
+   String RUNTIME_JOB_GROUP = "runtime";
+
    public void addJob(JobInfo jinfo, Date date) throws Exception;
 
    public void addPeriodJob(JobInfo jinfo, PeriodInfo pinfo) throws Exception;
