@@ -222,6 +222,12 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
     * @param jobTrigger2 new configuration job Trigger
     */
    private static boolean equals(Trigger jobTrigger1, Trigger jobTrigger2) {
+       if (jobTrigger1 != null && jobTrigger2 != null
+           && ((jobTrigger1 instanceof CronTrigger) != (jobTrigger2 instanceof CronTrigger)
+               || (jobTrigger1 instanceof SimpleTrigger) != (jobTrigger2 instanceof SimpleTrigger))) {
+           // A cron job turned into a period job, or the other way round
+           return false;
+       }
        if (jobTrigger1 instanceof CronTrigger && jobTrigger2 instanceof CronTrigger) { //Compare Cron Job Trigger
            if (!((CronTrigger) jobTrigger1).getCronExpression().equalsIgnoreCase(((CronTrigger) jobTrigger2).getCronExpression())) {
                return false;
@@ -680,9 +686,13 @@ public class JobSchedulerServiceImpl implements JobSchedulerService, Startable
    {
       try
       {
-         //Remove the list persisted jobs (jobs removed from the conf)
+         //Remove the list persisted jobs (jobs removed from the conf), but the jobs registered once the container started
+         String runtimeGroup = getGroupName(RUNTIME_JOB_GROUP);
          for (JobKey jobKey : persistedJobKeyList ){
-            scheduler_.deleteJob(jobKey);
+            if (!runtimeGroup.equals(jobKey.getGroup()))
+            {
+               scheduler_.deleteJob(jobKey);
+            }
          }
          // Ensure that only one JobEnvironmentConfigListener will be registered
          while (removeGlobalJobListener(JobEnvironmentConfigListener.NAME));

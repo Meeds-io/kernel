@@ -21,6 +21,7 @@ package org.exoplatform.services.cache.invalidation;
 import org.exoplatform.services.cache.CacheListener;
 import org.exoplatform.services.cache.CacheListenerContext;
 import org.exoplatform.services.cache.CachedObjectSelector;
+import org.exoplatform.services.cache.ClusterCachedObjectSelector;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.cache.ObjectCacheInfo;
 import org.exoplatform.services.log.ExoLogger;
@@ -32,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -47,7 +49,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <li>Node #2 re-loads key1 and puts (key1, value1) into the cache</li>
  * <li>On cluster node #1 key1 is invalidated, so we get back to step #1</li>
  * </ul>
- * 
+ * <p>
+ * A clear and a selection of a {@link ClusterCachedObjectSelector} reach the other nodes as entries of the delegate
+ * cache, keyed by the marker of a clear or by the selector. Each stays there until it expires or the cache evicts it,
+ * and takes one slot of its size, as the hash of a key does: one entry for the clears, one per distinct selection,
+ * equal selectors sharing theirs. A full cache evicts entries, a marker or a hash alike, by its eviction policy, which
+ * on Infinispan chooses by frequency and recency rather than by age; a key whose hash is evicted reads as missing on
+ * that node until it is loaded again.
  */
 public class InvalidationExoCache<K extends Serializable, V> implements ExoCache<K, V>,
    CacheListener<K, HashCode<V>>
@@ -205,15 +213,66 @@ public class InvalidationExoCache<K extends Serializable, V> implements ExoCache
    /**
     * @see org.exoplatform.services.cache.ExoCache#clearCache()
     */
+   @SuppressWarnings("unchecked")
    public void clearCache()
    {
       delegate.clearCache();
+      // A clear of the replicated cache notifies no node, a put does
+      delegate.put((K)ClearMarker.INSTANCE, newChange());
    }
 
    /**
     * @see org.exoplatform.services.cache.ExoCache#select(org.exoplatform.services.cache.CachedObjectSelector)
     */
+   @SuppressWarnings("unchecked")
    public void select(CachedObjectSelector<? super K, ? super V> selector) throws Exception
+   {
+      if (selector instanceof ClusterCachedObjectSelector)
+      {
+         removeSelected(selector);
+         // The other nodes hold entries this one does not: each of them removes the ones it selects
+         delegate.put((K)selector, newChange());
+      }
+      else
+      {
+         selectLocally(selector);
+         // A selector of another kind does not reach the other nodes: they lose all their entries instead
+         delegate.put((K)ClearMarker.INSTANCE, newChange());
+      }
+   }
+
+   /**
+    * Removes the entries of this node the selector selects, without notifying the other nodes
+    */
+   private void removeSelected(CachedObjectSelector<? super K, ? super V> selector) throws Exception
+   {
+      selectLocally(new CachedObjectSelector<K, V>()
+      {
+         @Override
+         public boolean select(K key, ObjectCacheInfo<? extends V> ocinfo)
+         {
+            return selector.select(key, ocinfo);
+         }
+
+         @Override
+         public void onSelect(ExoCache<? extends K, ? extends V> cache, K key, ObjectCacheInfo<? extends V> ocinfo)
+         {
+            removeLocal(key);
+         }
+      });
+   }
+
+   /**
+    * @return a new hash at each call, so that every change put under the same key is one the other nodes are
+    *         notified of
+    */
+   @SuppressWarnings("unchecked")
+   private HashCode<V> newChange()
+   {
+      return new HashCode<V>((V)UUID.randomUUID().toString());
+   }
+
+   private void selectLocally(CachedObjectSelector<? super K, ? super V> selector) throws Exception
    {
       if (selector == null)
       {
@@ -396,9 +455,25 @@ public class InvalidationExoCache<K extends Serializable, V> implements ExoCache
    /**
     * {@inheritDoc}
     */
+   @SuppressWarnings("unchecked")
    public void onPut(CacheListenerContext context, K key, HashCode<V> obj) throws Exception
    {
       V value = obj == null ? null : obj.getValue();
+      if (key == ClearMarker.INSTANCE || key instanceof ClusterCachedObjectSelector)
+      {
+         // A change reaches the other nodes as its hash alone: the node that holds its value made it, and applied it
+         if (value == null && key == ClearMarker.INSTANCE)
+         {
+            // Another node cleared its cache: the local entries go, without a clear of the others
+            onClearCache(context);
+         }
+         else if (value == null)
+         {
+            // Another node selected entries to remove: the local ones it selects go, from this node only
+            removeSelected((CachedObjectSelector<? super K, ? super V>)key);
+         }
+         return;
+      }
       if (value != null)
       {
          // we assume that it is a local put since the value is inside the HashCode object
