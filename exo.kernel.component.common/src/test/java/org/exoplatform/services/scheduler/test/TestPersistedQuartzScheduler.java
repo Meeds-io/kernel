@@ -44,6 +44,8 @@ public class TestPersistedQuartzScheduler extends TestCase {
     private Connection connection;
     private JobSchedulerService jobSchedulerService;
     private Statement st;
+    private QuartzSheduler quartzSheduler;
+    private QueueTasks queueTasks;
 
     public void setUp() throws Exception {
         manager = PortalContainer.getInstance();
@@ -97,8 +99,8 @@ public class TestPersistedQuartzScheduler extends TestCase {
         valueParam.setValue("true");
         initParams.addParameter(valueParam);
 
-        QueueTasks queueTasks = new QueueTasks();
-        QuartzSheduler quartzSheduler = new QuartzSheduler(PortalContainer.getInstance().getContext(), initParams);
+        queueTasks = new QueueTasks();
+        quartzSheduler = new QuartzSheduler(PortalContainer.getInstance().getContext(), initParams);
         jobSchedulerService = new JobSchedulerServiceImpl(quartzSheduler, queueTasks);
     }
 
@@ -117,6 +119,39 @@ public class TestPersistedQuartzScheduler extends TestCase {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    public void testAJobRegisteredOnceTheContainerStartedSurvivesARestart() throws Exception {
+        Date firedTime = new Date(System.currentTimeMillis() + 1000000);
+        jobSchedulerService.addJob(new JobInfo("pluginjob", null, AJob.class), firedTime);
+        jobSchedulerService.addJob(new JobInfo("runtimejob", JobSchedulerService.RUNTIME_JOB_GROUP, AJob.class), firedTime);
+
+        // A node restarts: no plugin registers either job before the service starts
+        JobSchedulerServiceImpl restarted = new JobSchedulerServiceImpl(quartzSheduler, queueTasks);
+        restarted.start();
+
+        List<JobDetail> jobs = restarted.getAllJobs();
+        assertEquals(1, jobs.size());
+        assertEquals("runtimejob", jobs.get(0).getKey().getName());
+    }
+
+    public void testAJobWhoseCronBecomesAPeriodIsRescheduled() throws Exception {
+        JobInfo job = new JobInfo("switchingjob", JobSchedulerService.RUNTIME_JOB_GROUP, AJob.class);
+        jobSchedulerService.addCronJob(job, "0 0 5 * * ?");
+
+        jobSchedulerService.addPeriodJob(job, new PeriodInfo(new Date(System.currentTimeMillis() + 1000000), null, 0,
+                                                              3600000));
+
+        org.quartz.Trigger[] triggers = jobSchedulerService.getTriggersOfJob("switchingjob",
+                                                                             JobSchedulerService.RUNTIME_JOB_GROUP);
+        assertEquals(1, triggers.length);
+        assertTrue(triggers[0] instanceof org.quartz.SimpleTrigger);
+
+        jobSchedulerService.addCronJob(job, "0 0 5 * * ?");
+
+        triggers = jobSchedulerService.getTriggersOfJob("switchingjob", JobSchedulerService.RUNTIME_JOB_GROUP);
+        assertEquals(1, triggers.length);
+        assertTrue(triggers[0] instanceof org.quartz.CronTrigger);
     }
 
     private String[] splitWithSQLDelimiter(String resource) {
