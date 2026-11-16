@@ -31,7 +31,11 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import org.picocontainer.Startable;
@@ -70,9 +74,38 @@ import org.picocontainer.Startable;
  * <br>
  * Note that <i>properties-param</i> entries and <i>properties.url</i> optional and can be omitted.
  * Note that if a path in <i>properties.url</i> doesn't exist it will be skipped with an info message
+ * <br>
+ * A property value of the form <i>secret-file:/path/to/file</i> in a file of <i>properties.urls</i>
+ * is replaced by the content of that file (trailing line breaks removed), which allows to use
+ * Docker secrets, e.g. <i>exo.email.smtp.password=secret-file:/run/secrets/smtp_password</i>.
+ * A <i>${...}</i> reference to such a property gets the secret from a later file of
+ * <i>properties.urls</i>. In the same file the result depends on the order of the lines and on the
+ * container, so do not rely on it.
+ * By default a missing or unreadable file is logged and the entry is ignored: the property keeps
+ * any value set earlier (by a previous file of <i>properties.urls</i>), or its default.
+ * When the property <i>exo.properties.secretFile.strict</i> is <i>true</i>, it fails instead the
+ * creation of this component, so that the container doesn't start with a missing secret.
+ * That property is read before each file of <i>properties.urls</i>, so it applies to the files that
+ * follow the one that sets it. Set it with a <i>-D</i> option or in a file listed before the one
+ * holding the secrets (ex: <i>docker.properties</i>): in a bundle that declares this component for
+ * the root and for the portal containers, the root container is then not built and the startup stops.
+ * Do not set it in the file holding the secrets: the root instance ignores the entry, then the
+ * portal container fails, Tomcat starts and the portal answers 503.
+ * Only files listed in <i>properties.urls</i> are resolved: values of the file given by the
+ * <i>properties.url</i> init param or the <i>exo.properties.url</i> system property are used as is.
  *
  */
 public class ExtendedPropertyConfigurator extends PropertyConfigurator implements Startable {
+
+  /**
+   * Prefix of a property value referencing a file (ex: a Docker secret) holding the real value.
+   */
+  public static final String SECRET_FILE_PREFIX = "secret-file:";
+
+  /**
+   * Name of the property that makes an unreadable secret file fail the startup instead of being ignored.
+   */
+  public static final String SECRET_FILE_STRICT_PROPERTY = "exo.properties.secretFile.strict";
 
   /**
    * The logger.
@@ -100,14 +133,20 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
             // We don't want an error reported by ContainerUtil.loadProperties when it doesn't exist
             url.openStream().close();
             LOG.info("Using property file " + url + " to set configuration properties.");
+            // Read before each file: a -D option or an earlier file of the list (ex: docker.properties) applies to it
+            boolean strict = Boolean.parseBoolean(PropertyManager.getProperty(SECRET_FILE_STRICT_PROPERTY));
             Map<String, String> props = ContainerUtil.loadProperties(url);
             if (props != null) {
               for (Map.Entry<String, String> entry : props.entrySet()) {
                 String propertyName = entry.getKey();
-                String propertyValue = entry.getValue();
-                PropertyManager.setProperty(propertyName, propertyValue);
+                String propertyValue = resolveSecretFile(propertyName, entry.getValue(), strict);
+                if (propertyValue != null) {
+                  PropertyManager.setProperty(propertyName, propertyValue);
+                }
               }
             }
+          } catch (SecretFileException sfe) {
+            throw sfe;
           } catch (FileNotFoundException fne) {
             LOG.info("Skipping configuration file " + path + ". File doesn't exist.");
           } catch (Exception e) {
@@ -116,6 +155,38 @@ public class ExtendedPropertyConfigurator extends PropertyConfigurator implement
           }
         }
       }
+    }
+  }
+
+  /**
+   * Replaces a <i>secret-file:</i> value by the content of the referenced file.
+   * The content is never logged.
+   * @param name the property name, used for logging only
+   * @param value the raw property value
+   * @param strict whether an unreadable file fails with a {@link SecretFileException} instead of being ignored
+   * @return the value unchanged if it isn't a secret file reference, the file content
+   *         without trailing line breaks otherwise, or null if the file cannot be read (the entry is then ignored)
+   */
+  static String resolveSecretFile(String name, String value, boolean strict) {
+    if (value == null || !value.startsWith(SECRET_FILE_PREFIX)) {
+      return value;
+    }
+    String path = value.substring(SECRET_FILE_PREFIX.length()).trim();
+    try {
+      String content = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+      LOG.info("Loaded the value of property " + name + " from secret file " + path);
+      int end = content.length();
+      while (end > 0 && (content.charAt(end - 1) == '\n' || content.charAt(end - 1) == '\r')) {
+        end--;
+      }
+      return content.substring(0, end);
+    } catch (IOException | RuntimeException e) {
+      if (strict) {
+        throw new SecretFileException("Cannot read secret file " + path + " for property " + name
+            + " and " + SECRET_FILE_STRICT_PROPERTY + " is true", e);
+      }
+      LOG.error("Cannot read secret file " + path + " for property " + name + ", the entry is ignored", e);
+      return null;
     }
   }
 
