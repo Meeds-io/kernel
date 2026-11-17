@@ -123,6 +123,22 @@ public class TestMailService extends TestCase
       mailServer.stop();
    }
 
+   public void testTheMailsAreSentOnDaemonThreads() throws Exception
+   {
+      java.lang.reflect.Field field = service.getClass().getDeclaredField("executorService");
+      field.setAccessible(true);
+      java.util.concurrent.ExecutorService executor = (java.util.concurrent.ExecutorService)field.get(service);
+      java.util.concurrent.atomic.AtomicReference<Future<Boolean>> daemon =
+         new java.util.concurrent.atomic.AtomicReference<>();
+      // The first mail sent from a non-daemon thread creates the pool's thread
+      Thread sender = new Thread(() -> daemon.set(executor.submit(() -> Thread.currentThread().isDaemon())));
+      sender.setDaemon(false);
+      sender.start();
+      sender.join();
+
+      assertTrue(daemon.get().get());
+   }
+
    public void testSendMimeMessage() throws Exception
    {
       MimeMessage message = new MimeMessage(service.getMailSession());
