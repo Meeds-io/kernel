@@ -103,7 +103,10 @@ public class MailServiceImpl implements MailService
       {
          public Thread newThread(Runnable arg0)
          {
-            return new Thread(arg0, ctx.getName() + "-MailServiceThread-" + mailServiceThreadCounter++);
+            Thread thread = new Thread(arg0, ctx.getName() + "-MailServiceThread-" + mailServiceThreadCounter++);
+            // A mail left sending when the server stops does not keep its JVM alive, whichever thread sent the first one
+            thread.setDaemon(true);
+            return thread;
          }
       });
    }
