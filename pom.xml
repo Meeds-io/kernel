@@ -40,7 +40,7 @@
       <!-- PLF project dependencies -->
       <io.meeds.gatein.wci.version>7.3.x-ai-contribution-SNAPSHOT</io.meeds.gatein.wci.version>
       <!-- 3rd party libraries versions -->
-      <subethasmtp.version>3.1.7</subethasmtp.version>
+      <greenmail.version>2.1.3</greenmail.version>
 
       <!-- Sonar properties -->
       <sonar.organization>meeds-io</sonar.organization>
@@ -122,9 +122,9 @@
 
          <!-- Other third party dependencies used in kernel only -->
          <dependency>
-            <groupId>org.subethamail</groupId>
-            <artifactId>subethasmtp</artifactId>
-            <version>${subethasmtp.version}</version>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail</artifactId>
+            <version>${greenmail.version}</version>
             <scope>test</scope>
          </dependency>
       </dependencies>

@@ -91,6 +91,32 @@
             <property name="mail.smtp.auth" value="false" />
             <property name="mail.smtp.auth.username" value="exo" />
             <property name="mail.smtp.auth.password" value="exo" />
+
+            <!--
+              Optional DKIM signing (RFC 6376, rsa-sha256, relaxed/relaxed), disabled by default.
+              The private key is an unencrypted RSA key in PKCS#8 PEM format and the public key is
+              published in the DNS TXT record <selector>._domainkey.<domain>. The key is read once, at
+              startup: a new key needs a restart. Only the mails sent
+              from the domain (or one of its subdomains) are signed.
+              mail.smtp.allow8bitmime and mail.smtps.allow8bitmime are forced to false while DKIM is enabled:
+              re-encoding a part after it is signed would invalidate the signature. A message created on a
+              session of its own is sent on that session, where the setting is not forced: keep it off there too.
+              mail.dkim.domain is dot separated labels of letters, digits and hyphens (an IDN in its punycode A-label form),
+              mail.dkim.selector is written like a domain name; anything else stops the service at startup.
+              mail.dkim.strict (false by default): by default a key file readable by other users, or a key of
+              1024 to 2047 bits, is only logged as a warning, and a mail that cannot be signed is sent unsigned
+              after an error is logged; when true the service refuses to start with such a key and a mail that
+              cannot be signed is not sent. A key under 1024 bits is refused in both modes (RFC 8301). On a file
+              system without POSIX permissions the key file check is skipped in both modes, with a warning.
+              mail.dkim.headers: optional comma separated header names to sign (From is always signed). Bcc is
+              refused: the transport removes it before the message is sent.
+              On a distribution these keys can be set in exo.properties.
+            <property name="mail.dkim.enabled" value="true" />
+            <property name="mail.dkim.domain" value="example.org" />
+            <property name="mail.dkim.selector" value="default" />
+            <property name="mail.dkim.private-key" value="/etc/exo/dkim/default.pem" />
+            <property name="mail.dkim.strict" value="false" />
+            -->
          </properties-param>
       </init-params>
    </component>

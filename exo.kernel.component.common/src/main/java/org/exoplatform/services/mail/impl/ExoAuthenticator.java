@@ -18,8 +18,8 @@
  */
 package org.exoplatform.services.mail.impl;
 
-import javax.mail.Authenticator;
-import javax.mail.PasswordAuthentication;
+import jakarta.mail.Authenticator;
+import jakarta.mail.PasswordAuthentication;
 
 public class ExoAuthenticator extends Authenticator
 {
