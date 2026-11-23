@@ -66,26 +66,18 @@
          </exclusions>
       </dependency>
       <dependency>
-         <groupId>javax.mail</groupId>
-         <artifactId>javax.mail-api</artifactId>
+         <groupId>jakarta.mail</groupId>
+         <artifactId>jakarta.mail-api</artifactId>
       </dependency>
       <dependency>
-         <groupId>com.sun.mail</groupId>
-         <artifactId>javax.mail</artifactId>
+         <groupId>org.eclipse.angus</groupId>
+         <artifactId>jakarta.mail</artifactId>
       </dependency>
       <dependency>
-         <groupId>org.subethamail</groupId>
-         <artifactId>subethasmtp</artifactId>
+         <groupId>com.icegreen</groupId>
+         <artifactId>greenmail</artifactId>
          <scope>test</scope>
          <exclusions>
-            <exclusion>
-               <groupId>javax.activation</groupId>
-               <artifactId>activation</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>javax.mail</groupId>
-               <artifactId>mail</artifactId>
-            </exclusion>
             <exclusion>
                <groupId>org.slf4j</groupId>
                <artifactId>slf4j-api</artifactId>
@@ -103,8 +95,8 @@
          <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>javax.activation-api</artifactId>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
       </dependency>
    </dependencies>
    <build>
